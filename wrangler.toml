@@ -1,0 +1,7 @@
+name = "wehear-frontend"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_PUBLIC_API_BASE_URL = "http://localhost:8668"
