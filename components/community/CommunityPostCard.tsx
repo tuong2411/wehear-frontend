@@ -63,9 +63,7 @@ export default function CommunityPostCard({ post, onLikeUpdate }: PostCardProps)
   const getFullUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL 
-      ? process.env.NEXT_PUBLIC_API_BASE_URL.replace("/api", "") 
-      : "http://localhost:8668";
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://wehear-backend-production.up.railway.app";
     return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };
 

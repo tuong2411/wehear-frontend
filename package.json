@@ -18,14 +18,14 @@
     "axios": "^1.13.6",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",
-    "next": "15.5.2",
+    "next": "15.5.18",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hot-toast": "^2.6.0",
     "react-webcam": "^7.2.0",
     "socket.io-client": "^4.8.3"
-  },
-  "devDependencies": {
+    },
+    "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
     "@cloudflare/workers-types": "^4.20240401.0",
     "@opennextjs/cloudflare": "^1.19.10",
@@ -38,5 +38,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.86.0"
-  }
+    }
+    }
 }

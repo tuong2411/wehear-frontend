@@ -78,7 +78,7 @@ export default function AIQuizPage() {
   const getFullUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    let baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8668/api";
+    let baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://wehear-backend-production.up.railway.app";
     baseUrl = baseUrl.endsWith("/api") ? baseUrl.replace("/api", "") : baseUrl;
     return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };

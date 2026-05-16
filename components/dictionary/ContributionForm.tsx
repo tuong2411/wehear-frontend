@@ -31,7 +31,7 @@ export default function ContributionForm({ onSuccess, onCancel, initialType = 'N
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const API_ROOT = "http://localhost:8668";
+  const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "https://wehear-backend-production.up.railway.app";
 
   const getFullVideoUrl = (url: string | null) => {
     if (!url) return "";

@@ -63,7 +63,7 @@ export default function AdminLessonsPage() {
   const getFullUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8668/api";
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://wehear-backend-production.up.railway.app";
     const cleanBaseUrl = baseUrl.endsWith("/api") ? baseUrl.replace("/api", "") : baseUrl;
     return `${cleanBaseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };

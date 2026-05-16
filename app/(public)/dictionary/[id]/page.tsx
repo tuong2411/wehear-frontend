@@ -37,7 +37,7 @@ export default function SignDetailPage({ params }: { params: Promise<{ id: strin
     if (url.startsWith("http")) return url;
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL 
       ? process.env.NEXT_PUBLIC_API_BASE_URL.replace("/api", "") 
-      : "http://localhost:8668";
+      : "https://wehear-backend-production.up.railway.app";
     return `${baseUrl}${url}`;
   };
 
