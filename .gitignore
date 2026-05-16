@@ -8,13 +8,21 @@ coverage/
 
 # Next.js
 .next/
+.next/cache
 out/
+
+# Misc
+cache/
+node_modules/.cache/
+
 
 # Production
 build/
 dist/
 
 # Misc
+cache/
+node_modules/.cache/
 .DS_Store
 *.pem
 *.log
