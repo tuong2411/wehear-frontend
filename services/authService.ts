@@ -7,6 +7,8 @@ export const authService = {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Set cookie for middleware (Next.js Server Side)
+      document.cookie = `token=${response.data.token}; path=/; max-age=86400; SameSite=Lax`;
     }
     return response.data;
   },
@@ -26,6 +28,8 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Clear cookie for middleware
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
     window.location.href = '/login';
   },
 
