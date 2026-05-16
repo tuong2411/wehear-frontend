@@ -21,6 +21,8 @@ export interface Quiz {
   id?: number;
   title: string;
   description?: string;
+  timeLimitMinutes?: number;
+  passingScore?: number;
   questions: QuizQuestion[];
 }
 
