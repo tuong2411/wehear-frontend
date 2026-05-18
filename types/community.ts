@@ -1,8 +1,8 @@
 export interface CommunityPost {
   id?: number;
   userId?: number;
-  title: String;
-  content: String;
+  title: string;
+  content: string;
   mediaUrl?: string;
   mediaType?: 'IMAGE' | 'VIDEO';
   status?: 'ACTIVE' | 'HIDDEN';

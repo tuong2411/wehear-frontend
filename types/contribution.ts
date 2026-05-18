@@ -4,7 +4,7 @@ export type ContributionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export interface DictionaryContribution {
     id?: number;
     userId: number;
-    word: String;
+    word: string;
     description: string;
     example: string;
     videoUrl: string;
