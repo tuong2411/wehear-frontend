@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { userService } from "@/services/userService";
-import { User } from "@/types/auth";
+import { RegisterRequest, User } from "@/types/auth";
 import { 
   Search, UserPlus, MoreVertical, Trash2, Shield, 
   Lock, Unlock, RotateCcw, Eye, Mail, CheckCircle2, 
@@ -12,6 +12,14 @@ import {
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { authService } from "@/services/authService";
+
+type ConfirmAction = {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  tone: "amber" | "rose" | "blue";
+  onConfirm: () => Promise<void>;
+};
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -23,6 +31,18 @@ export default function AdminUsersPage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [lastUpdatedId, setLastUpdatedId] = useState<number | null>(null);
   const [me, setMe] = useState<User | null>(null);
+  const [detailUser, setDetailUser] = useState<User | null>(null);
+  const [roleUser, setRoleUser] = useState<User | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [createForm, setCreateForm] = useState<RegisterRequest>({
+    username: "",
+    password: "123456",
+    email: "",
+    fullName: "",
+    phoneNumber: "",
+  });
 
   // Load Initial Data
   const fetchData = async () => {
@@ -63,6 +83,10 @@ export default function AdminUsersPage() {
   // Actions
   const handleToggleStatus = async (user: User) => {
     const newStatus = user.status === 1 ? 0 : 1;
+    if (user.id === me?.id && newStatus === 0) {
+      return toast.error("Bạn không thể tự khóa tài khoản của chính mình");
+    }
+
     try {
       await userService.updateUserStatus(user.id, newStatus);
       toast.success(newStatus === 1 ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản");
@@ -74,55 +98,136 @@ export default function AdminUsersPage() {
   };
 
   const handleResetPassword = async (id: number) => {
-    if (confirm("Bạn có chắc chắn muốn đặt lại mật khẩu của người dùng này về mặc định?")) {
-      try {
-        await userService.resetPassword(id);
-        toast.success("Đã đặt lại mật khẩu thành '123456'");
-        setLastUpdatedId(id);
-      } catch (error) {
-        toast.error("Đặt lại mật khẩu thất bại");
-      }
-    }
+    const targetUser = users.find(user => user.id === id);
+    setConfirmAction({
+      title: "Đặt lại mật khẩu",
+      description: `WeHear sẽ đặt mật khẩu của ${targetUser?.fullName || "người dùng này"} về mặc định: 123456.`,
+      confirmLabel: "Đặt lại mật khẩu",
+      tone: "amber",
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await userService.resetPassword(id);
+          toast.success("Đã đặt lại mật khẩu thành 123456");
+          setLastUpdatedId(id);
+          setConfirmAction(null);
+        } catch (error) {
+          toast.error("Đặt lại mật khẩu thất bại");
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const handleDelete = async (id: number) => {
-    if (id === me?.id) return toast.error("Bạn không thể xóa chính mình!");
-    if (confirm("Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa?")) {
-      try {
-        await userService.deleteUser(id);
-        toast.success("Đã xóa người dùng thành công");
-        fetchData();
-      } catch (error) {
-        toast.error("Xóa người dùng thất bại");
-      }
+    if (id === me?.id) return toast.error("Bạn không thể xóa chính mình");
+    const targetUser = users.find(user => user.id === id);
+    setConfirmAction({
+      title: "Xóa người dùng",
+      description: `Tài khoản ${targetUser?.fullName || "này"} sẽ bị xóa khỏi WeHear. Hành động này không thể hoàn tác.`,
+      confirmLabel: "Xóa người dùng",
+      tone: "rose",
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await userService.deleteUser(id);
+          toast.success("Đã xóa người dùng thành công");
+          setConfirmAction(null);
+          fetchData();
+        } catch (error) {
+          toast.error("Xóa người dùng thất bại");
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleCreateUser = async () => {
+    if (!createForm.username.trim() || !createForm.email.trim() || !createForm.fullName.trim() || !createForm.password.trim()) {
+      return toast.error("Vui long nhap day du thong tin bat buoc");
+    }
+
+    try {
+      setActionLoading(true);
+      await userService.createUser(createForm);
+      toast.success("Da them thanh vien moi");
+      setIsCreateOpen(false);
+      setCreateForm({ username: "", password: "123456", email: "", fullName: "", phoneNumber: "" });
+      fetchData();
+    } catch (error) {
+      toast.error("Them thanh vien that bai");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleChangeRole = async (user: User, roleId: number) => {
+    if (user.id === me?.id) return toast.error("Ban khong the doi vai tro cua chinh minh");
+
+    try {
+      setActionLoading(true);
+      await userService.updateUserRole(user.id, roleId);
+      toast.success("Da cap nhat vai tro");
+      setRoleUser(null);
+      setLastUpdatedId(user.id);
+      fetchData();
+    } catch (error) {
+      toast.error("Cap nhat vai tro that bai");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   // Bulk Actions
   const handleBulkAction = async (action: string) => {
+    if (action === "lock" && selectedIds.includes(me?.id as number)) {
+      return toast.error("Danh sách chọn chứa tài khoản của bạn. Vui lòng bỏ chọn chính mình trước khi khóa.");
+    }
+
     if (action === "delete" && selectedIds.includes(me?.id as number)) {
       return toast.error("Danh sách chọn chứa tài khoản của bạn. Vui lòng bỏ chọn chính mình trước khi xóa.");
     }
-    
-    if (confirm(`Thực hiện '${action}' cho ${selectedIds.length} mục đã chọn?`)) {
-      try {
-        await userService.bulkAction(selectedIds, action);
-        toast.success("Thực hiện thao tác hàng loạt thành công");
-        setSelectedIds([]);
-        fetchData();
-      } catch (error) {
-        toast.error("Thao tác hàng loạt thất bại");
-      }
-    }
+
+    const actionCopy: Record<string, { title: string; label: string; tone: "amber" | "rose" | "blue"; verb: string }> = {
+      lock: { title: "Khóa tài khoản đã chọn", label: "Khóa tài khoản", tone: "amber", verb: "khóa" },
+      unlock: { title: "Mở khóa tài khoản đã chọn", label: "Mở khóa", tone: "blue", verb: "mở khóa" },
+      delete: { title: "Xóa người dùng đã chọn", label: "Xóa hàng loạt", tone: "rose", verb: "xóa" },
+    };
+    const copy = actionCopy[action] || actionCopy.lock;
+
+    setConfirmAction({
+      title: copy.title,
+      description: `WeHear sẽ ${copy.verb} ${selectedIds.length} tài khoản đang được chọn.`,
+      confirmLabel: copy.label,
+      tone: copy.tone,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await userService.bulkAction(selectedIds, action);
+          toast.success("Thực hiện thao tác hàng loạt thành công");
+          setSelectedIds([]);
+          setConfirmAction(null);
+          fetchData();
+        } catch (error) {
+          toast.error("Thao tác hàng loạt thất bại");
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const toggleSelect = (id: number) => {
+    if (id === me?.id) return;
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === filteredUsers.length) setSelectedIds([]);
-    else setSelectedIds(filteredUsers.map(u => u.id));
+    const selectableIds = filteredUsers.filter(u => u.id !== me?.id).map(u => u.id);
+    if (selectableIds.length > 0 && selectedIds.length === selectableIds.length) setSelectedIds([]);
+    else setSelectedIds(selectableIds);
   };
 
   return (
@@ -133,7 +238,10 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Quản lý Người dùng</h1>
           <p className="text-slate-500 font-medium mt-1">Hệ thống có tổng cộng {users.length} thành viên tham gia.</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all active:scale-95 group">
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all active:scale-95 group"
+        >
           <UserPlus size={20} className="group-hover:rotate-12 transition-transform" />
           <span>Thêm thành viên mới</span>
         </button>
@@ -212,7 +320,10 @@ export default function AdminUsersPage() {
                   <input 
                     type="checkbox" 
                     className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer transition-all" 
-                    checked={selectedIds.length === filteredUsers.length && filteredUsers.length > 0}
+                    checked={
+                      filteredUsers.some(user => user.id !== me?.id) &&
+                      selectedIds.length === filteredUsers.filter(user => user.id !== me?.id).length
+                    }
                     onChange={toggleSelectAll}
                   />
                 </th>
@@ -249,7 +360,8 @@ export default function AdminUsersPage() {
                   <td className="px-6 py-4">
                     <input 
                       type="checkbox" 
-                      className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 cursor-pointer transition-all" 
+                      className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 cursor-pointer transition-all disabled:cursor-not-allowed disabled:opacity-40" 
+                      disabled={user.id === me?.id}
                       checked={selectedIds.includes(user.id)}
                       onChange={() => toggleSelect(user.id)}
                     />
@@ -292,9 +404,11 @@ export default function AdminUsersPage() {
                     {new Date(user.createdAt).toLocaleDateString('vi-VN')}
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <UserActionMenu 
+                    <UserActionMenu2 
                       user={user} 
                       isSelf={user.id === me?.id}
+                      onView={() => setDetailUser(user)}
+                      onChangeRole={() => setRoleUser(user)}
                       onToggleStatus={() => handleToggleStatus(user)}
                       onResetPassword={() => handleResetPassword(user.id)}
                       onDelete={() => handleDelete(user.id)}
@@ -306,12 +420,43 @@ export default function AdminUsersPage() {
           </table>
         </div>
       </div>
+
+      {detailUser && (
+        <UserDetailModal user={detailUser} onClose={() => setDetailUser(null)} />
+      )}
+
+      {roleUser && (
+        <RoleModal
+          user={roleUser}
+          loading={actionLoading}
+          onClose={() => setRoleUser(null)}
+          onSubmit={(roleId) => handleChangeRole(roleUser, roleId)}
+        />
+      )}
+
+      {isCreateOpen && (
+        <CreateUserModal
+          form={createForm}
+          loading={actionLoading}
+          onChange={setCreateForm}
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={handleCreateUser}
+        />
+      )}
+
+      {confirmAction && (
+        <ConfirmActionModal
+          action={confirmAction}
+          loading={actionLoading}
+          onClose={() => setConfirmAction(null)}
+        />
+      )}
     </div>
   );
 }
 
 // Sub-component Menu dropdown cho từng user
-function UserActionMenu({ user, isSelf, onToggleStatus, onResetPassword, onDelete }: any) {
+function UserActionMenu({ user, isSelf, onView, onChangeRole, onToggleStatus, onResetPassword, onDelete }: any) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -362,6 +507,222 @@ function UserActionMenu({ user, isSelf, onToggleStatus, onResetPassword, onDelet
         </>
       )}
     </div>
+  );
+}
+
+function UserActionMenu2({ user, isSelf, onView, onChangeRole, onToggleStatus, onResetPassword, onDelete }: any) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative inline-block text-left">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all active:scale-90"
+      >
+        <MoreVertical size={20} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-2xl shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-40 py-2 animate-in zoom-in-95 duration-200 border border-slate-100 overflow-hidden">
+            <button
+              onClick={() => { onView(); setIsOpen(false); }}
+              className="w-full text-left px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
+            >
+              <Eye size={16} className="text-blue-500" /> Xem chi tiet
+            </button>
+            <button
+              disabled={isSelf}
+              onClick={() => { onChangeRole(); setIsOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm font-bold flex items-center gap-3 transition-colors ${
+                isSelf ? "text-slate-300 cursor-not-allowed" : "text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <ShieldAlert size={16} className="text-indigo-500" /> Doi vai tro
+            </button>
+            <button
+              disabled={isSelf}
+              onClick={() => { onToggleStatus(); setIsOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm font-bold flex items-center gap-3 transition-colors hover:bg-slate-50 ${
+                isSelf ? "text-slate-300 cursor-not-allowed" : user.status === 1 ? "text-rose-600" : "text-emerald-600"
+              }`}
+            >
+              {user.status === 1 ? <Lock size={16} /> : <Unlock size={16} />}
+              {isSelf ? "Không thể tự khóa" : user.status === 1 ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+            </button>
+            <button
+              onClick={() => { onResetPassword(); setIsOpen(false); }}
+              className="w-full text-left px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
+            >
+              <RotateCcw size={16} className="text-amber-500" /> Dat lai mat khau
+            </button>
+            <div className="h-[1px] bg-slate-100 my-2" />
+            <button
+              disabled={isSelf}
+              onClick={() => { onDelete(); setIsOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm font-bold flex items-center gap-3 transition-colors ${
+                isSelf ? "text-slate-300 cursor-not-allowed" : "text-rose-600 hover:bg-rose-50"
+              }`}
+            >
+              <Trash2 size={16} /> Xoa nguoi dung
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ConfirmActionModal({ action, loading, onClose }: { action: ConfirmAction; loading: boolean; onClose: () => void }) {
+  const toneClass = {
+    amber: {
+      icon: "bg-amber-50 text-amber-600 ring-amber-100",
+      button: "bg-amber-500 hover:bg-amber-600 shadow-amber-100",
+    },
+    rose: {
+      icon: "bg-rose-50 text-rose-600 ring-rose-100",
+      button: "bg-rose-600 hover:bg-rose-700 shadow-rose-100",
+    },
+    blue: {
+      icon: "bg-blue-50 text-blue-600 ring-blue-100",
+      button: "bg-blue-600 hover:bg-blue-700 shadow-blue-100",
+    },
+  }[action.tone];
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-slate-200">
+        <div className="flex items-start gap-4">
+          <div className={`rounded-2xl p-3 ring-8 ${toneClass.icon}`}>
+            <ShieldAlert size={26} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">WeHear Admin</p>
+            <h2 className="mt-1 text-xl font-black text-slate-950">{action.title}</h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{action.description}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold leading-6 text-slate-600">
+          Hãy kiểm tra kỹ trước khi xác nhận. Thao tác này sẽ được ghi nhận trong hệ thống WeHear.
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={onClose}
+            className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-50"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={action.onConfirm}
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 ${toneClass.button}`}
+          >
+            {loading ? "Đang xử lý..." : action.confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalShell({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-xl font-black text-slate-900">{title}</h2>
+          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+            <XCircle size={22} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function UserDetailModal({ user, onClose }: { user: User; onClose: () => void }) {
+  const rows = [
+    ["Ho ten", user.fullName],
+    ["Username", user.username],
+    ["Email", user.email],
+    ["So dien thoai", user.phoneNumber || "Chua cap nhat"],
+    ["Vai tro", user.roleName],
+    ["Trang thai", user.status === 1 ? "Dang hoat dong" : "Da bi khoa"],
+    ["Ngay tham gia", new Date(user.createdAt).toLocaleDateString("vi-VN")],
+  ];
+
+  return (
+    <ModalShell title="Chi tiet nguoi dung" onClose={onClose}>
+      <div className="space-y-3">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-400">{label}</span>
+            <span className="text-right text-sm font-bold text-slate-800">{value}</span>
+          </div>
+        ))}
+      </div>
+    </ModalShell>
+  );
+}
+
+function RoleModal({ user, loading, onClose, onSubmit }: { user: User; loading: boolean; onClose: () => void; onSubmit: (roleId: number) => void }) {
+  const [roleId, setRoleId] = useState(user.roleId);
+
+  return (
+    <ModalShell title="Doi vai tro" onClose={onClose}>
+      <div className="space-y-5">
+        <p className="text-sm font-medium text-slate-500">Chon vai tro moi cho <span className="font-bold text-slate-900">{user.fullName}</span>.</p>
+        <select
+          value={roleId}
+          onChange={(e) => setRoleId(Number(e.target.value))}
+          className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500"
+        >
+          <option value={1}>ADMIN</option>
+          <option value={2}>USER</option>
+        </select>
+        <div className="flex justify-end gap-3">
+          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Huy</button>
+          <button disabled={loading} onClick={() => onSubmit(roleId)} className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
+            {loading ? "Dang luu..." : "Luu thay doi"}
+          </button>
+        </div>
+      </div>
+    </ModalShell>
+  );
+}
+
+function CreateUserModal({ form, loading, onChange, onClose, onSubmit }: {
+  form: RegisterRequest;
+  loading: boolean;
+  onChange: (form: RegisterRequest) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const setField = (key: keyof RegisterRequest, value: string) => onChange({ ...form, [key]: value });
+
+  return (
+    <ModalShell title="Them thanh vien moi" onClose={onClose}>
+      <div className="space-y-4">
+        <input value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} placeholder="Ho ten" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.username} onChange={(e) => setField("username", e.target.value)} placeholder="Username" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.email} onChange={(e) => setField("email", e.target.value)} placeholder="Email" type="email" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.phoneNumber || ""} onChange={(e) => setField("phoneNumber", e.target.value)} placeholder="So dien thoai" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.password} onChange={(e) => setField("password", e.target.value)} placeholder="Mat khau" type="text" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <div className="flex justify-end gap-3 pt-2">
+          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Huy</button>
+          <button disabled={loading} onClick={onSubmit} className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
+            {loading ? "Dang tao..." : "Tao thanh vien"}
+          </button>
+        </div>
+      </div>
+    </ModalShell>
   );
 }
 

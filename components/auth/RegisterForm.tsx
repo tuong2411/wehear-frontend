@@ -48,7 +48,7 @@ export default function RegisterForm() {
     >
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-slate-900">Tạo tài khoản mới</h1>
-        <p className="mt-2 text-slate-500 font-medium">Tham gia cùng cộng đồng Wehear ngay hôm nay</p>
+        <p className="mt-2 text-slate-500 font-medium">Tham gia cùng cộng đồng WeHear ngay hôm nay</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

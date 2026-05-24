@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "WeHear",
-  description: "Nền tảng dịch ngôn ngữ ký hiệu tiếng Việt bằng AI",
+  description:
+    "N\u1ec1n t\u1ea3ng d\u1ecbch ng\u00f4n ng\u1eef k\u00fd hi\u1ec7u ti\u1ebfng Vi\u1ec7t b\u1eb1ng AI",
 };
 
 export default function RootLayout({
@@ -13,10 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body>
-        {/* Navbar và Footer đã được dời vào Layout của từng nhóm Route (public/user) */}
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

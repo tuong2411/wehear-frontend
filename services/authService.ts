@@ -18,11 +18,11 @@ export const authService = {
   },
 
   forgotPassword: async (email: string): Promise<string> => {
-    return (await api.post<string>(`/auth/forgot-password?email=${email}`)).data;
+    return (await api.post<string>(`/auth/forgot-password?email=${encodeURIComponent(email)}`)).data;
   },
 
   resetPassword: async (token: string, newPassword: string): Promise<string> => {
-    return (await api.post<string>(`/auth/reset-password?token=${token}&newPassword=${newPassword}`)).data;
+    return (await api.post<string>(`/auth/reset-password?token=${encodeURIComponent(token)}&newPassword=${encodeURIComponent(newPassword)}`)).data;
   },
 
   logout: () => {

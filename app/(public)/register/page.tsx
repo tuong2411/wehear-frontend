@@ -2,8 +2,8 @@ import RegisterForm from "@/components/auth/RegisterForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Đăng ký | Wehear",
-  description: "Tạo tài khoản mới tại Wehear",
+  title: "Đăng ký | WeHear",
+  description: "Tạo tài khoản mới tại WeHear",
 };
 
 export default function RegisterPage() {

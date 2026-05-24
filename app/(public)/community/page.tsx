@@ -1,8 +1,8 @@
 import CommunityFeed from "@/components/community/CommunityFeed";
 
 export const metadata = {
-  title: "Cộng đồng Wehear - Hỏi đáp & Chia sẻ",
-  description: "Tham gia cộng đồng Wehear để cùng nhau học tập và chia sẻ kiến thức về ngôn ngữ ký hiệu.",
+  title: "Cộng đồng WeHear - Hỏi đáp & Chia sẻ",
+  description: "Tham gia cộng đồng WeHear để cùng nhau học tập và chia sẻ kiến thức về ngôn ngữ ký hiệu.",
 };
 
 export default function CommunityPage() {

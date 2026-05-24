@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { authService } from "@/services/authService";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,27 +25,29 @@ export default function LoginForm() {
     try {
       const data = await authService.login(formData);
       if (data.token && data.user) {
-        // Kiểm tra quyền Admin
         const isAdmin = data.user.roleName?.toUpperCase() === "ADMIN" || data.user.roleId === 1;
-        
+
         if (isAdmin) {
-          // Nếu là Admin, ưu tiên vào trang quản lý
           window.location.href = "/admin";
         } else {
-          // Nếu là User, vào trang yêu cầu trước đó hoặc trang chủ
           const returnUrl = searchParams.get("returnUrl") || "/";
           window.location.href = decodeURIComponent(returnUrl);
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.");
+      const serverMessage = err.response?.data;
+      setError(
+        typeof serverMessage === "string"
+          ? serverMessage
+          : serverMessage?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -54,12 +55,12 @@ export default function LoginForm() {
     >
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-slate-900">Chào mừng trở lại!</h1>
-        <p className="mt-2 text-slate-500 font-medium">Đăng nhập để tiếp tục hành trình cùng Wehear</p>
+        <p className="mt-2 font-medium text-slate-500">Đăng nhập để tiếp tục hành trình cùng WeHear</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tên đăng nhập</label>
+          <label className="mb-1.5 block text-sm font-semibold text-slate-700">Tên đăng nhập</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
               <Mail className="h-5 w-5" />
@@ -76,12 +77,9 @@ export default function LoginForm() {
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="mb-1.5 flex items-center justify-between">
             <label className="block text-sm font-semibold text-slate-700">Mật khẩu</label>
-            <Link 
-              href="/forgot-password" 
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-            >
+            <Link href="/forgot-password" className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700">
               Quên mật khẩu?
             </Link>
           </div>
@@ -108,10 +106,10 @@ export default function LoginForm() {
         </div>
 
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-600 border border-red-100"
+            className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600"
           >
             {error}
           </motion.div>
@@ -120,18 +118,14 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="relative flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 text-white font-bold transition-all hover:bg-blue-700 active:scale-95 disabled:bg-blue-300 disabled:active:scale-100"
+          className="relative flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 font-bold text-white transition-all hover:bg-blue-700 active:scale-95 disabled:bg-blue-300 disabled:active:scale-100"
         >
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            "Đăng nhập"
-          )}
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Đăng nhập"}
         </button>
 
         <p className="mt-6 text-center text-sm font-medium text-slate-500">
           Chưa có tài khoản?{" "}
-          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">
+          <Link href="/register" className="font-bold text-blue-600 transition-colors hover:text-blue-700">
             Đăng ký ngay
           </Link>
         </p>

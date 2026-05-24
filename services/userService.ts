@@ -1,5 +1,5 @@
 import { api } from './api';
-import { User } from '@/types/auth';
+import { RegisterRequest, User } from '@/types/auth';
 
 export const userService = {
   // User Profile APIs
@@ -24,8 +24,16 @@ export const userService = {
     return (await api.get<User[]>('/admin/users')).data;
   },
 
+  createUser: async (data: RegisterRequest): Promise<string> => {
+    return (await api.post<string>('/admin/users', data)).data;
+  },
+
   updateUserStatus: async (id: number, status: number): Promise<string> => {
     return (await api.put<string>(`/admin/users/${id}/status?status=${status}`)).data;
+  },
+
+  updateUserRole: async (id: number, roleId: number): Promise<string> => {
+    return (await api.put<string>(`/admin/users/${id}/role`, { roleId })).data;
   },
 
   deleteUser: async (id: number): Promise<string> => {

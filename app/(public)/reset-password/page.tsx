@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Lock, CheckCircle2, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { authService } from '@/services/authService';
 
 function ResetPasswordForm() {
@@ -13,78 +13,99 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp!');
+
+    if (password.length < 6) {
+      setError('Mật khẩu mới cần có ít nhất 6 ký tự.');
       return;
     }
+
+    if (password !== confirmPassword) {
+      setError('Mật khẩu xác nhận chưa khớp.');
+      return;
+    }
+
     if (!token) {
-      setError('Token không hợp lệ hoặc đã hết hạn!');
+      setError('Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.');
       return;
     }
 
     setLoading(true);
     setError('');
+
     try {
       await authService.resetPassword(token, password);
-      setMessage('Mật khẩu đã được thay đổi thành công!');
-      setTimeout(() => router.push('/login'), 2000);
+      setMessage('Mật khẩu WeHear của bạn đã được cập nhật thành công.');
+      setTimeout(() => router.push('/login'), 2200);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      setError(err.response?.data || err.response?.data?.message || 'WeHear chưa thể cập nhật mật khẩu. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="relative z-10 w-full max-w-md rounded-2xl bg-white p-8 shadow-xl shadow-blue-100/50 ring-1 ring-slate-100"
+      transition={{ duration: 0.45 }}
+      className="relative z-10 w-full max-w-md rounded-2xl bg-white p-8 shadow-xl shadow-slate-200/70 ring-1 ring-slate-200"
     >
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">Đặt lại mật khẩu</h1>
-        {!message && <p className="mt-2 text-slate-500 font-medium text-sm">Nhập mật khẩu mới của bạn bên dưới</p>}
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+          <ShieldCheck className="h-7 w-7" />
+        </div>
+        <h1 className="text-3xl font-black tracking-tight text-slate-900">Đặt lại mật khẩu</h1>
+        {!message && (
+          <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+            Tạo mật khẩu mới để tiếp tục sử dụng tài khoản WeHear của bạn.
+          </p>
+        )}
       </div>
 
       {message ? (
-        <div className="text-center space-y-4">
+        <div className="space-y-5 text-center">
           <div className="flex justify-center">
-            <div className="rounded-full bg-emerald-50 p-3 ring-8 ring-emerald-50/50">
-              <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+            <div className="rounded-full bg-emerald-50 p-3 ring-8 ring-emerald-50/60">
+              <CheckCircle2 className="h-12 w-12 text-emerald-500" />
             </div>
           </div>
-          <p className="text-emerald-600 font-bold">{message}</p>
-          <p className="text-slate-500 text-sm font-medium">Đang chuyển hướng về trang đăng nhập...</p>
+          <div>
+            <p className="text-lg font-black text-slate-900">Cập nhật thành công</p>
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{message}</p>
+          </div>
+          <p className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+            WeHear đang chuyển bạn về trang đăng nhập.
+          </p>
         </div>
       ) : (
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mật khẩu mới</label>
+              <label className="mb-1.5 block text-sm font-bold text-slate-700">Mật khẩu mới</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
-                  className="block w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-10 text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
-                  placeholder="••••••••"
+                  className="block w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-10 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  placeholder="Nhập mật khẩu mới"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 transition-colors hover:text-slate-600"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -92,16 +113,16 @@ function ResetPasswordForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Xác nhận mật khẩu mới</label>
+              <label className="mb-1.5 block text-sm font-bold text-slate-700">Xác nhận mật khẩu mới</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
-                  className="block w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
-                  placeholder="••••••••"
+                  className="block w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  placeholder="Nhập lại mật khẩu mới"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
@@ -110,10 +131,10 @@ function ResetPasswordForm() {
           </div>
 
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-600 border border-red-100"
+              className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-700"
             >
               {error}
             </motion.div>
@@ -122,13 +143,13 @@ function ResetPasswordForm() {
           <button
             type="submit"
             disabled={loading}
-            className="relative flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 text-white font-bold transition-all hover:bg-blue-700 active:scale-95 disabled:bg-blue-300 disabled:active:scale-100 shadow-lg shadow-blue-200"
+            className="relative flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-95 disabled:bg-blue-300 disabled:active:scale-100"
           >
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <span className="flex items-center">
-                Cập nhật mật khẩu <ArrowRight className="ml-2 w-4 h-4" />
+                Cập nhật mật khẩu <ArrowRight className="ml-2 h-4 w-4" />
               </span>
             )}
           </button>
@@ -141,16 +162,15 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <main className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] h-[40%] w-[40%] rounded-full bg-blue-50 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-indigo-50 blur-[120px]" />
-      </div>
-      
-      <Suspense fallback={
-        <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-8 flex justify-center items-center shadow-xl">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        </div>
-      }>
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_35%)]" />
+
+      <Suspense
+        fallback={
+          <div className="relative z-10 flex w-full max-w-md items-center justify-center rounded-2xl bg-white p-8 shadow-xl shadow-slate-200/70 ring-1 ring-slate-200">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          </div>
+        }
+      >
         <ResetPasswordForm />
       </Suspense>
     </main>

@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Đăng nhập | Wehear",
-  description: "Đăng nhập vào hệ thống Wehear",
+  title: "Đăng nhập | WeHear",
+  description: "Đăng nhập vào hệ thống WeHear",
 };
 
 export default function LoginPage() {

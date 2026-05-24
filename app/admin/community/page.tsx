@@ -1,7 +1,7 @@
 import AdminCommunityManager from "@/components/admin/AdminCommunityManager";
 
 export const metadata = {
-  title: "Quản lý Cộng đồng | Admin Wehear",
+  title: "Quản lý Cộng đồng | Admin WeHear",
 };
 
 export default function AdminCommunityPage() {

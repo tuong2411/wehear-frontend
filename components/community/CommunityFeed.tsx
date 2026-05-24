@@ -36,7 +36,7 @@ export default function CommunityFeed() {
       <div className="mb-10 text-center md:text-left bg-gradient-to-r from-blue-600 to-blue-800 rounded-[32px] p-10 md:p-14 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
-            Cộng đồng <span className="text-blue-200">Wehear</span>
+            Cộng đồng <span className="text-blue-200">WeHear</span>
           </h1>
           <p className="text-blue-100 font-medium text-lg max-w-2xl">
             Nơi kết nối, học hỏi và chia sẻ kiến thức về ngôn ngữ ký hiệu. Cùng nhau xây dựng một cộng đồng không rào cản.
@@ -81,7 +81,7 @@ export default function CommunityFeed() {
               <ShieldCheck className="text-blue-600" size={20} /> Về cộng đồng
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed mb-6">
-              Wehear là không gian an toàn và tôn trọng. Mọi đóng góp đều có giá trị trong việc lan tỏa ngôn ngữ ký hiệu Việt Nam.
+              WeHear là không gian an toàn và tôn trọng. Mọi đóng góp đều có giá trị trong việc lan tỏa ngôn ngữ ký hiệu Việt Nam.
             </p>
             <div className="flex justify-between items-center py-4 border-y border-slate-50">
               <div className="text-center">
