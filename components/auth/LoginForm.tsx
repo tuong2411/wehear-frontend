@@ -26,12 +26,12 @@ export default function LoginForm() {
       const data = await authService.login(formData);
       if (data.token && data.user) {
         const isAdmin = data.user.roleName?.toUpperCase() === "ADMIN" || data.user.roleId === 1;
+        const returnUrl = searchParams.get("returnUrl");
 
         if (isAdmin) {
-          window.location.href = "/admin";
+          window.location.href = returnUrl ? decodeURIComponent(returnUrl) : "/admin";
         } else {
-          const returnUrl = searchParams.get("returnUrl") || "/";
-          window.location.href = decodeURIComponent(returnUrl);
+          window.location.href = returnUrl ? decodeURIComponent(returnUrl) : "/";
         }
       }
     } catch (err: any) {

@@ -1,38 +1,61 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { lessonService } from "@/services/lessonService";
-import { Lesson } from "@/types/lesson";
-import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  ExternalLink, 
-  BookOpen, 
-  Clock, 
-  Eye,
-  Star,
-  CheckCircle2,
-  XCircle,
-  MoreVertical,
-  Filter
-} from "lucide-react";
-import toast from "react-hot-toast";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import toast from "react-hot-toast";
+import {
+  AlertCircle,
+  Archive,
+  BookOpen,
+  CheckCircle2,
+  Edit,
+  ExternalLink,
+  FileText,
+  Filter,
+  Loader2,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
+import { lessonService } from "@/services/lessonService";
+import type { Lesson, LessonLevel, LessonStatus } from "@/types/lesson";
+
+const statusLabels: Record<LessonStatus, string> = {
+  DRAFT: "Bản nháp",
+  SCHEDULED: "Đã lên lịch",
+  PUBLISHED: "Công khai",
+  UNPUBLISHED: "Tạm ẩn",
+  ARCHIVED: "Lưu trữ",
+};
+
+const levelLabels: Record<LessonLevel, string> = {
+  BASIC: "Cơ bản",
+  INTERMEDIATE: "Trung bình",
+  ADVANCED: "Nâng cao",
+};
+
+const statusStyles: Record<LessonStatus, string> = {
+  DRAFT: "bg-slate-100 text-slate-700 border-slate-200",
+  SCHEDULED: "bg-sky-50 text-sky-700 border-sky-100",
+  PUBLISHED: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  UNPUBLISHED: "bg-amber-50 text-amber-700 border-amber-100",
+  ARCHIVED: "bg-zinc-100 text-zinc-700 border-zinc-200",
+};
 
 export default function AdminLessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | LessonStatus>("ALL");
+  const [levelFilter, setLevelFilter] = useState<"ALL" | LessonLevel>("ALL");
 
   const fetchLessons = async () => {
     try {
       setLoading(true);
       const data = await lessonService.adminGetAll();
       setLessons(data);
-    } catch (error) {
+    } catch {
       toast.error("Không thể tải danh sách bài học");
     } finally {
       setLoading(false);
@@ -44,21 +67,46 @@ export default function AdminLessonsPage() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (confirm("Bạn có chắc chắn muốn xóa bài học này?")) {
-      try {
-        await lessonService.deleteLesson(id);
-        toast.success("Đã xóa bài học thành công");
-        fetchLessons();
-      } catch (error) {
-        toast.error("Xóa bài học thất bại");
-      }
+    if (!confirm("Bạn có chắc chắn muốn xóa bài học này?")) return;
+
+    try {
+      await lessonService.deleteLesson(id);
+      toast.success("Đã xóa bài học thành công");
+      fetchLessons();
+    } catch {
+      toast.error("Xóa bài học thất bại");
     }
   };
 
-  const filteredLessons = lessons.filter(lesson => 
-    lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lesson.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLessons = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+
+    return lessons.filter((lesson) => {
+      const matchesSearch =
+        !keyword ||
+        lesson.title.toLowerCase().includes(keyword) ||
+        lesson.slug.toLowerCase().includes(keyword) ||
+        lesson.description?.toLowerCase().includes(keyword);
+
+      const matchesStatus = statusFilter === "ALL" || lesson.status === statusFilter;
+      const matchesLevel = levelFilter === "ALL" || lesson.level === levelFilter;
+
+      return matchesSearch && matchesStatus && matchesLevel;
+    });
+  }, [lessons, levelFilter, searchTerm, statusFilter]);
+
+  const stats = useMemo(() => {
+    const published = lessons.filter((lesson) => lesson.status === "PUBLISHED").length;
+    const drafts = lessons.filter((lesson) => lesson.status === "DRAFT").length;
+    const featured = lessons.filter((lesson) => lesson.isFeatured).length;
+
+    return [
+      { label: "Tổng bài học", value: lessons.length, icon: BookOpen, tone: "text-blue-700 bg-blue-50" },
+      { label: "Đang công khai", value: published, icon: CheckCircle2, tone: "text-emerald-700 bg-emerald-50" },
+      { label: "Bản nháp", value: drafts, icon: FileText, tone: "text-slate-700 bg-slate-100" },
+      { label: "Nổi bật", value: featured, icon: Star, tone: "text-amber-700 bg-amber-50" },
+    ];
+  }, [lessons]);
 
   const getFullUrl = (url: string) => {
     if (!url) return "";
@@ -69,147 +117,194 @@ export default function AdminLessonsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Quản lý Bài học</h1>
-          <p className="text-sm font-medium text-slate-500">Tạo mới, chỉnh sửa và xuất bản các bài học ngôn ngữ ký hiệu.</p>
-        </div>
-        <Link href="/admin/lessons/new" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95">
-          <Plus size={18} />
-          <span>Tạo bài học mới</span>
-        </Link>
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        {/* Toolbar */}
-        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between bg-slate-50/50">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm bài học..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all text-sm font-medium"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="min-h-screen bg-slate-50 px-4 py-6 md:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-700">Lesson Management</p>
+            <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950">Quản lý bài học</h1>
+            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
+              Theo dõi nội dung, trạng thái phát hành và bài kiểm tra của từng bài học.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
-              <Filter size={16} />
-              Lọc
-            </button>
-            <select className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 outline-none focus:border-blue-500">
-              <option value="">Trạng thái</option>
-              <option value="1">Đã xuất bản</option>
-              <option value="0">Nháp</option>
-            </select>
-          </div>
-        </div>
+          <Link
+            href="/admin/lessons/new"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+          >
+            <Plus size={18} />
+            Tạo bài học
+          </Link>
+        </header>
 
-        {/* Lessons List */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Bài học</th>
-                <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Cấp độ / Vùng</th>
-                <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-center">Nổi bật</th>
-                <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Trạng thái</th>
-                <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">{item.label}</span>
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${item.tone}`}>
+                    <Icon size={18} />
+                  </span>
+                </div>
+                <p className="mt-4 text-3xl font-black tracking-tight text-slate-950">{item.value}</p>
+              </div>
+            );
+          })}
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 p-4">
+            <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+              <label className="relative block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên, slug hoặc mô tả"
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </label>
+
+              <label className="relative">
+                <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value as "ALL" | LessonStatus)}
+                  className="h-11 min-w-44 appearance-none rounded-lg border border-slate-200 bg-white pl-9 pr-8 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                >
+                  <option value="ALL">Tất cả trạng thái</option>
+                  {Object.entries(statusLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <select
+                value={levelFilter}
+                onChange={(event) => setLevelFilter(event.target.value as "ALL" | LessonLevel)}
+                className="h-11 min-w-40 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+              >
+                <option value="ALL">Tất cả cấp độ</option>
+                {Object.entries(levelLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] text-left">
+              <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center gap-2 text-blue-600">
-                      <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-sm font-bold text-slate-400">Đang tải bài học...</p>
-                    </div>
-                  </td>
+                  <th className="px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400">Bài học</th>
+                  <th className="px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400">Phân loại</th>
+                  <th className="px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400">Trạng thái</th>
+                  <th className="px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400">Quiz</th>
+                  <th className="px-5 py-3 text-right text-xs font-black uppercase tracking-widest text-slate-400">Thao tác</th>
                 </tr>
-              ) : filteredLessons.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <p className="text-sm font-bold text-slate-400">Không tìm thấy bài học nào.</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredLessons.map((lesson) => (
-                  <tr key={lesson.id} className="group hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-10 rounded-lg bg-slate-100 flex-shrink-0 relative overflow-hidden border border-slate-200">
-                          {lesson.coverImage ? (
-                            <Image src={getFullUrl(lesson.coverImage)} alt={lesson.title} fill className="object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                              <BookOpen size={16} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="max-w-xs">
-                          <p className="font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors truncate">{lesson.title}</p>
-                          <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{lesson.description || "Không có mô tả"}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded w-fit">LV: {lesson.level}</span>
-                        <span className="text-[10px] font-black text-slate-400 uppercase">{lesson.region || "Toàn quốc"}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {lesson.isFeatured ? (
-                        <Star size={16} className="mx-auto text-amber-500 fill-amber-500" />
-                      ) : (
-                        <Star size={16} className="mx-auto text-slate-200" />
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                        lesson.status === 'PUBLISHED' 
-                        ? "bg-emerald-50 text-emerald-600" 
-                        : "bg-amber-50 text-amber-600"
-                      }`}>
-                        {lesson.status === 'PUBLISHED' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                        {lesson.status === 'PUBLISHED' ? "Đã xuất bản" : "Bản nháp"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link 
-                          href={`/lessons/${lesson.slug}`} 
-                          target="_blank"
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
-                          title="Xem ngoài trang chủ"
-                        >
-                          <ExternalLink size={18} />
-                        </Link>
-                        <Link 
-                          href={`/admin/lessons/${lesson.id}`}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                          title="Chỉnh sửa"
-                        >
-                          <Edit size={18} />
-                        </Link>
-                        <button 
-                          onClick={() => handleDelete(lesson.id)}
-                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" 
-                          title="Xóa bài học"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3 text-slate-400">
+                        <Loader2 className="animate-spin text-blue-700" size={32} />
+                        <p className="text-sm font-bold">Đang tải bài học...</p>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : filteredLessons.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3 text-slate-400">
+                        <AlertCircle size={36} />
+                        <p className="text-sm font-bold">Không tìm thấy bài học phù hợp.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredLessons.map((lesson) => (
+                    <tr key={lesson.id} className="transition hover:bg-slate-50">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                            {lesson.coverImage ? (
+                              <img src={getFullUrl(lesson.coverImage)} alt={lesson.title} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-slate-300">
+                                <BookOpen size={22} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-black text-slate-950">{lesson.title}</p>
+                              {lesson.isFeatured && <Star size={15} className="shrink-0 fill-amber-400 text-amber-400" />}
+                            </div>
+                            <p className="mt-1 max-w-md truncate text-xs font-semibold text-slate-500">{lesson.description || "Không có mô tả"}</p>
+                            <p className="mt-1 text-[11px] font-bold text-slate-400">/{lesson.slug}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <span className="rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-black text-blue-700">
+                            {levelLabels[lesson.level] || lesson.level}
+                          </span>
+                          <span className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-600">
+                            {lesson.region || "TOAN_QUOC"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${statusStyles[lesson.status] || statusStyles.DRAFT}`}>
+                          {lesson.status === "ARCHIVED" ? <Archive size={13} /> : <CheckCircle2 size={13} />}
+                          {statusLabels[lesson.status] || lesson.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="text-sm font-black text-slate-900">{lesson.quiz?.questions?.length || 0}</span>
+                        <span className="ml-1 text-xs font-semibold text-slate-400">câu hỏi</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          <Link
+                            href={`/lessons/${lesson.slug}`}
+                            target="_blank"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                            title="Xem bài học"
+                          >
+                            <ExternalLink size={17} />
+                          </Link>
+                          <Link
+                            href={`/admin/lessons/${lesson.id}`}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                            title="Chỉnh sửa"
+                          >
+                            <Edit size={17} />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(lesson.id)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                            title="Xóa bài học"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );

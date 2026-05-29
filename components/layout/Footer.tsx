@@ -49,12 +49,13 @@ export default function Footer() {
             <li>Khóa luận tốt nghiệp</li>
             <li>AI + Web Application</li>
             <li>Ngôn ngữ ký hiệu tiếng Việt</li>
+            <li>Nguồn tham khảo video: QIPEDC</li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-slate-200 px-6 py-4 text-center text-sm text-slate-500">
-        © 2026 WeHear. All rights reserved.
+        © 2026 WeHear. All rights reserved. Video tham khảo từ QIPEDC.
       </div>
     </footer>
   );

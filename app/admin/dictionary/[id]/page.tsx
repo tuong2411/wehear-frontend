@@ -14,6 +14,11 @@ import { dictionaryService } from "@/services/dictionaryService";
 import { SignDictionary } from "@/types/dictionary";
 import toast from "react-hot-toast";
 
+type DictionaryMedia = NonNullable<SignDictionary["media"]>[number] & {
+  type?: string;
+  url?: string;
+};
+
 export default function EditDictionaryPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
@@ -100,6 +105,25 @@ export default function EditDictionaryPage({ params }: { params: Promise<{ id: s
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://wehear-backend-production.up.railway.app";
     return `${baseUrl}${url}`;
   };
+
+  const getMediaUrl = (media: DictionaryMedia) => media.mediaUrl || media.url || "";
+
+  const isVideoMedia = (media: DictionaryMedia) => {
+    const mediaType = (media.mediaType || media.type || "").toLowerCase();
+    const mediaUrl = getMediaUrl(media).toLowerCase();
+
+    return (
+      mediaType === "video" ||
+      mediaUrl.includes("/video/upload/") ||
+      mediaUrl.endsWith(".mp4")
+    );
+  };
+
+  const uniqueMedia = ((formData.media || []) as DictionaryMedia[]).filter(
+    (item, index, self) =>
+      index === self.findIndex((media) => getMediaUrl(media) === getMediaUrl(item))
+  );
+  const currentMedia = uniqueMedia[0];
 
   if (loading) {
     return (
@@ -273,22 +297,31 @@ export default function EditDictionaryPage({ params }: { params: Promise<{ id: s
                 </h3>
                 
                 <div className="space-y-4">
-                   {formData.media && formData.media.length > 0 ? (
-                      formData.media.map((m, idx) => (
-                        <div key={m.id} className="relative group rounded-2xl overflow-hidden border border-slate-100 bg-slate-50">
-                           <div className="aspect-video bg-slate-900">
-                              {m.mediaType === "video" ? (
-                                <video src={getFullUrl(m.mediaUrl)} className="w-full h-full object-contain" controls />
-                              ) : (
-                                <img src={getFullUrl(m.mediaUrl)} alt="Media" className="w-full h-full object-contain" />
-                              )}
-                           </div>
-                           <div className="p-3 flex items-center justify-between bg-white border-t border-slate-50">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">#{idx + 1} - {m.mediaType}</span>
-                              {m.isPrimary && <CheckCircle2 size={16} className="text-emerald-500" />}
-                           </div>
+                   {currentMedia ? (
+                     <div key={currentMedia.id} className="relative group rounded-2xl overflow-hidden border border-slate-100 bg-slate-50">
+                        <div className="aspect-video bg-slate-900">
+                           {isVideoMedia(currentMedia) ? (
+                             <video
+                               src={getFullUrl(getMediaUrl(currentMedia))}
+                               controls
+                               preload="metadata"
+                               className="w-full h-full object-cover rounded-xl"
+                             />
+                           ) : (
+                             <img
+                               src={getFullUrl(getMediaUrl(currentMedia))}
+                               alt="Media"
+                               className="w-full h-full object-cover rounded-xl"
+                             />
+                           )}
                         </div>
-                      ))
+                        <div className="p-3 flex items-center justify-between bg-white border-t border-slate-50">
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                             #1 - {isVideoMedia(currentMedia) ? "video" : "image"}
+                           </span>
+                           {currentMedia.isPrimary && <CheckCircle2 size={16} className="text-emerald-500" />}
+                        </div>
+                     </div>
                    ) : (
                      <div className="py-10 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
                         <AlertCircle size={24} className="mx-auto text-slate-300 mb-2" />

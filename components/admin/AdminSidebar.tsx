@@ -8,9 +8,9 @@ import {
   BookOpen, 
   Book, 
   HelpCircle, 
-  Newspaper, 
-  Settings, 
-  LogOut 
+  Newspaper,
+  LogOut,
+  ExternalLink
 } from "lucide-react";
 import { authService } from "@/services/authService";
 
@@ -57,6 +57,13 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="p-4 border-t">
+        <Link
+          href="/lessons"
+          className="mb-2 flex items-center space-x-3 p-3 w-full text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+        >
+          <ExternalLink size={20} />
+          <span className="font-medium">Xem trang người dùng</span>
+        </Link>
         <button
           onClick={() => authService.logout()}
           className="flex items-center space-x-3 p-3 w-full text-red-600 hover:bg-red-50 rounded-lg transition-colors"

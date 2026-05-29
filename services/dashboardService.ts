@@ -1,11 +1,12 @@
 import { api } from "./api";
+import type { Lesson } from "@/types/lesson";
 
 export interface DashboardStats {
   totalUsers: number;
   totalLessons: number;
   totalSigns: number;
   totalQuizzes: number;
-  recentLessons: any[];
+  recentLessons: Lesson[];
 }
 
 export const dashboardService = {

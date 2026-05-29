@@ -63,7 +63,11 @@ export default function SignDetailPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const primaryVideo = sign.media?.find(m => m.mediaType === "video") || sign.media?.[0];
+  const uniqueMedia = (sign.media || []).filter(
+    (item, index, self) =>
+      index === self.findIndex((media) => media.mediaUrl === item.mediaUrl)
+  );
+  const primaryVideo = uniqueMedia.find(m => m.mediaType === "video") || uniqueMedia[0];
 
   return (
     <div className="bg-slate-50 pb-20">
@@ -111,9 +115,9 @@ export default function SignDetailPage({ params }: { params: Promise<{ id: strin
             </motion.div>
 
             {/* Sub-media list if any */}
-            {sign.media && sign.media.length > 1 && (
+            {uniqueMedia.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
-                {sign.media.map((m, idx) => (
+                {uniqueMedia.map((m) => (
                   <div key={m.id} className="aspect-video bg-white rounded-2xl overflow-hidden border-2 border-slate-100 hover:border-blue-400 cursor-pointer transition-all">
                      {m.mediaType === "video" ? (
                        <video src={getFullUrl(m.mediaUrl)} className="w-full h-full object-cover" />

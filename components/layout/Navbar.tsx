@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { authService } from "@/services/authService";
-import { User, LogOut, ChevronDown, Menu, X, History } from "lucide-react";
+import type { User as AuthUser } from "@/types/auth";
+import { User, LogOut, ChevronDown, Menu, X, History, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
@@ -17,9 +18,10 @@ const navItems = [
 ];
 
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const isAdmin = user && (user.roleName?.toUpperCase() === "ADMIN" || user.roleId === 1);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -86,6 +88,15 @@ export default function Navbar() {
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-100 bg-white p-2 shadow-xl shadow-slate-200/50"
                   >
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <ShieldCheck size={16} /> Quản trị
+                      </Link>
+                    )}
                     <Link 
                       href="/profile" 
                       className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
@@ -174,6 +185,15 @@ export default function Navbar() {
                     Đăng ký
                   </Link>
                 </div>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-bold text-white"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <ShieldCheck size={16} /> Quản trị
+                </Link>
               )}
             </div>
           </motion.div>
