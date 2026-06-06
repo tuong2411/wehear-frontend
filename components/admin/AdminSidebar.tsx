@@ -8,11 +8,8 @@ import {
   BookOpen, 
   Book, 
   HelpCircle, 
-  Newspaper,
-  LogOut,
-  ExternalLink
+  Newspaper
 } from "lucide-react";
-import { authService } from "@/services/authService";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
@@ -29,7 +26,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-white border-r h-screen sticky top-0 flex flex-col">
+    <aside className="sticky top-20 flex h-[calc(100vh-5rem)] w-64 flex-col border-r bg-white">
       <div className="p-6 border-b">
         <Link href="/" className="text-2xl font-bold text-blue-600">
           WeHear Admin
@@ -38,7 +35,9 @@ export default function AdminSidebar() {
 
       <nav className="flex-1 p-4 space-y-1">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.href === "/admin"
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
@@ -55,23 +54,6 @@ export default function AdminSidebar() {
           );
         })}
       </nav>
-
-      <div className="p-4 border-t">
-        <Link
-          href="/lessons"
-          className="mb-2 flex items-center space-x-3 p-3 w-full text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-        >
-          <ExternalLink size={20} />
-          <span className="font-medium">Xem trang người dùng</span>
-        </Link>
-        <button
-          onClick={() => authService.logout()}
-          className="flex items-center space-x-3 p-3 w-full text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          <LogOut size={20} />
-          <span className="font-medium">Đăng xuất</span>
-        </button>
-      </div>
     </aside>
   );
 }

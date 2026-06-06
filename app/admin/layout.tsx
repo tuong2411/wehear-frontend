@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { authService } from "@/services/authService";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -42,7 +42,9 @@ export default function AdminLayout({
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4 text-blue-600">
           <Loader2 className="animate-spin" size={48} />
-          <p className="font-bold animate-pulse text-slate-500 uppercase tracking-widest text-xs">Đang kiểm tra quyền quản trị...</p>
+          <p className="animate-pulse text-xs font-bold uppercase tracking-widest text-slate-500">
+            Đang kiểm tra quyền quản trị...
+          </p>
         </div>
       </div>
     );
@@ -53,26 +55,15 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen bg-slate-50 font-sans">
       <Toaster position="top-right" reverseOrder={false} />
-      
-      {/* Sidebar - Tách biệt hoàn toàn */}
-      <AdminSidebar />
-      
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar - Chỉ của Admin */}
-        <AdminHeader />
-        
-        {/* Content Area */}
-        <main className="flex-1 p-8 overflow-auto">
-          {/* Tag Nhận diện Khu vực Quản trị */}
-          <div className="max-w-7xl mx-auto mb-6 flex items-center space-x-2 text-blue-600">
-            <ShieldCheck size={16} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-              Khu vực Quản trị Hệ thống
-            </span>
-          </div>
-          
+
+      <AdminHeader />
+
+      <div className="flex min-w-0">
+        <AdminSidebar />
+
+        <main className="min-w-0 flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

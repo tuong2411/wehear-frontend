@@ -125,14 +125,14 @@ export default function AdminUsersPage() {
     const targetUser = users.find(user => user.id === id);
     setConfirmAction({
       title: "Xóa người dùng",
-      description: `Tài khoản ${targetUser?.fullName || "này"} sẽ bị xóa khỏi WeHear. Hành động này không thể hoàn tác.`,
+      description: `Tài khoản ${targetUser?.fullName || "này"} sẽ bị vô hiệu hóa và ẩn thông tin cá nhân. Các đóng góp, bài viết và lịch sử liên quan vẫn được giữ để tránh lỗi dữ liệu.`,
       confirmLabel: "Xóa người dùng",
       tone: "rose",
       onConfirm: async () => {
         try {
           setActionLoading(true);
           await userService.deleteUser(id);
-          toast.success("Đã xóa người dùng thành công");
+          toast.success("Đã vô hiệu hóa và ẩn thông tin người dùng");
           setConfirmAction(null);
           fetchData();
         } catch (error) {
@@ -146,35 +146,35 @@ export default function AdminUsersPage() {
 
   const handleCreateUser = async () => {
     if (!createForm.username.trim() || !createForm.email.trim() || !createForm.fullName.trim() || !createForm.password.trim()) {
-      return toast.error("Vui long nhap day du thong tin bat buoc");
+      return toast.error("Vui lòng nhập đầy đủ thông tin bắt buộc");
     }
 
     try {
       setActionLoading(true);
       await userService.createUser(createForm);
-      toast.success("Da them thanh vien moi");
+      toast.success("Đã thêm thành viên mới");
       setIsCreateOpen(false);
       setCreateForm({ username: "", password: "123456", email: "", fullName: "", phoneNumber: "" });
       fetchData();
     } catch (error) {
-      toast.error("Them thanh vien that bai");
+      toast.error("Thêm thành viên thất bại");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleChangeRole = async (user: User, roleId: number) => {
-    if (user.id === me?.id) return toast.error("Ban khong the doi vai tro cua chinh minh");
+    if (user.id === me?.id) return toast.error("Bạn không thể đổi vai trò của chính mình");
 
     try {
       setActionLoading(true);
       await userService.updateUserRole(user.id, roleId);
-      toast.success("Da cap nhat vai tro");
+      toast.success("Đã cập nhật vai trò");
       setRoleUser(null);
       setLastUpdatedId(user.id);
       fetchData();
     } catch (error) {
-      toast.error("Cap nhat vai tro that bai");
+      toast.error("Cập nhật vai trò thất bại");
     } finally {
       setActionLoading(false);
     }
@@ -193,7 +193,7 @@ export default function AdminUsersPage() {
     const actionCopy: Record<string, { title: string; label: string; tone: "amber" | "rose" | "blue"; verb: string }> = {
       lock: { title: "Khóa tài khoản đã chọn", label: "Khóa tài khoản", tone: "amber", verb: "khóa" },
       unlock: { title: "Mở khóa tài khoản đã chọn", label: "Mở khóa", tone: "blue", verb: "mở khóa" },
-      delete: { title: "Xóa người dùng đã chọn", label: "Xóa hàng loạt", tone: "rose", verb: "xóa" },
+      delete: { title: "Xóa người dùng đã chọn", label: "Xóa hàng loạt", tone: "rose", verb: "vô hiệu hóa và ẩn thông tin" },
     };
     const copy = actionCopy[action] || actionCopy.lock;
 
@@ -530,7 +530,7 @@ function UserActionMenu2({ user, isSelf, onView, onChangeRole, onToggleStatus, o
               onClick={() => { onView(); setIsOpen(false); }}
               className="w-full text-left px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
             >
-              <Eye size={16} className="text-blue-500" /> Xem chi tiet
+              <Eye size={16} className="text-blue-500" /> Xem chi tiết
             </button>
             <button
               disabled={isSelf}
@@ -539,7 +539,7 @@ function UserActionMenu2({ user, isSelf, onView, onChangeRole, onToggleStatus, o
                 isSelf ? "text-slate-300 cursor-not-allowed" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
-              <ShieldAlert size={16} className="text-indigo-500" /> Doi vai tro
+              <ShieldAlert size={16} className="text-indigo-500" /> Đổi vai trò
             </button>
             <button
               disabled={isSelf}
@@ -555,7 +555,7 @@ function UserActionMenu2({ user, isSelf, onView, onChangeRole, onToggleStatus, o
               onClick={() => { onResetPassword(); setIsOpen(false); }}
               className="w-full text-left px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
             >
-              <RotateCcw size={16} className="text-amber-500" /> Dat lai mat khau
+              <RotateCcw size={16} className="text-amber-500" /> Đặt lại mật khẩu
             </button>
             <div className="h-[1px] bg-slate-100 my-2" />
             <button
@@ -565,7 +565,7 @@ function UserActionMenu2({ user, isSelf, onView, onChangeRole, onToggleStatus, o
                 isSelf ? "text-slate-300 cursor-not-allowed" : "text-rose-600 hover:bg-rose-50"
               }`}
             >
-              <Trash2 size={16} /> Xoa nguoi dung
+              <Trash2 size={16} /> Xóa người dùng
             </button>
           </div>
         </>
@@ -649,17 +649,17 @@ function ModalShell({ title, children, onClose }: { title: string; children: Rea
 
 function UserDetailModal({ user, onClose }: { user: User; onClose: () => void }) {
   const rows = [
-    ["Ho ten", user.fullName],
+    ["Họ tên", user.fullName],
     ["Username", user.username],
     ["Email", user.email],
-    ["So dien thoai", user.phoneNumber || "Chua cap nhat"],
-    ["Vai tro", user.roleName],
-    ["Trang thai", user.status === 1 ? "Dang hoat dong" : "Da bi khoa"],
-    ["Ngay tham gia", new Date(user.createdAt).toLocaleDateString("vi-VN")],
+    ["Số điện thoại", user.phoneNumber || "Chưa cập nhật"],
+    ["Vai trò", user.roleName],
+    ["Trạng thái", user.status === 1 ? "Đang hoạt động" : "Đã bị khóa"],
+    ["Ngày tham gia", new Date(user.createdAt).toLocaleDateString("vi-VN")],
   ];
 
   return (
-    <ModalShell title="Chi tiet nguoi dung" onClose={onClose}>
+    <ModalShell title="Chi tiết người dùng" onClose={onClose}>
       <div className="space-y-3">
         {rows.map(([label, value]) => (
           <div key={label} className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
@@ -676,9 +676,9 @@ function RoleModal({ user, loading, onClose, onSubmit }: { user: User; loading: 
   const [roleId, setRoleId] = useState(user.roleId);
 
   return (
-    <ModalShell title="Doi vai tro" onClose={onClose}>
+    <ModalShell title="Đổi vai trò" onClose={onClose}>
       <div className="space-y-5">
-        <p className="text-sm font-medium text-slate-500">Chon vai tro moi cho <span className="font-bold text-slate-900">{user.fullName}</span>.</p>
+        <p className="text-sm font-medium text-slate-500">Chọn vai trò mới cho <span className="font-bold text-slate-900">{user.fullName}</span>.</p>
         <select
           value={roleId}
           onChange={(e) => setRoleId(Number(e.target.value))}
@@ -688,9 +688,9 @@ function RoleModal({ user, loading, onClose, onSubmit }: { user: User; loading: 
           <option value={2}>USER</option>
         </select>
         <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Huy</button>
+          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Hủy</button>
           <button disabled={loading} onClick={() => onSubmit(roleId)} className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
-            {loading ? "Dang luu..." : "Luu thay doi"}
+            {loading ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
         </div>
       </div>
@@ -708,17 +708,17 @@ function CreateUserModal({ form, loading, onChange, onClose, onSubmit }: {
   const setField = (key: keyof RegisterRequest, value: string) => onChange({ ...form, [key]: value });
 
   return (
-    <ModalShell title="Them thanh vien moi" onClose={onClose}>
+    <ModalShell title="Thêm thành viên mới" onClose={onClose}>
       <div className="space-y-4">
-        <input value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} placeholder="Ho ten" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} placeholder="Họ tên" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
         <input value={form.username} onChange={(e) => setField("username", e.target.value)} placeholder="Username" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
         <input value={form.email} onChange={(e) => setField("email", e.target.value)} placeholder="Email" type="email" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
-        <input value={form.phoneNumber || ""} onChange={(e) => setField("phoneNumber", e.target.value)} placeholder="So dien thoai" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
-        <input value={form.password} onChange={(e) => setField("password", e.target.value)} placeholder="Mat khau" type="text" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.phoneNumber || ""} onChange={(e) => setField("phoneNumber", e.target.value)} placeholder="Số điện thoại" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
+        <input value={form.password} onChange={(e) => setField("password", e.target.value)} placeholder="Mật khẩu" type="text" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-200 focus:ring-blue-500" />
         <div className="flex justify-end gap-3 pt-2">
-          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Huy</button>
+          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Hủy</button>
           <button disabled={loading} onClick={onSubmit} className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
-            {loading ? "Dang tao..." : "Tao thanh vien"}
+            {loading ? "Đang tạo..." : "Tạo thành viên"}
           </button>
         </div>
       </div>
