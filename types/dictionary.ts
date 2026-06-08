@@ -1,7 +1,7 @@
 export interface SignMedia {
   id: number;
   signId: number;
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'IMAGE' | 'VIDEO';
   mediaUrl: string;
   isPrimary: boolean;
   createdAt: string;

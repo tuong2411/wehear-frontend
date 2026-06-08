@@ -222,7 +222,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   // --- LEARNING MODE (Default) ---
   const currentSign = lesson.signs?.[activeSignIndex];
-  const primaryVideo = currentSign?.media?.find(m => m.mediaType === "video" && m.isPrimary) || currentSign?.media?.[0];
+  const isVideoMedia = (mediaType?: string) => mediaType?.toLowerCase() === "video";
+  const primaryVideo = currentSign?.media?.find(m => isVideoMedia(m.mediaType) && m.isPrimary)
+    || currentSign?.media?.find(m => isVideoMedia(m.mediaType))
+    || currentSign?.media?.[0];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-32 font-sans">

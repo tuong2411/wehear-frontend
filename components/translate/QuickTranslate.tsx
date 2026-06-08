@@ -120,7 +120,9 @@ export default function QuickTranslate() {
     }
   }, [isPlaying, currentWordIndex]);
 
-  const currentMedia = translatedWords[currentWordIndex]?.media?.find(m => m.mediaType === 'video' && m.isPrimary) 
+  const isVideoMedia = (mediaType?: string) => mediaType?.toLowerCase() === "video";
+  const currentMedia = translatedWords[currentWordIndex]?.media?.find(m => isVideoMedia(m.mediaType) && m.isPrimary)
+    || translatedWords[currentWordIndex]?.media?.find(m => isVideoMedia(m.mediaType))
     || translatedWords[currentWordIndex]?.media?.[0];
 
   return (

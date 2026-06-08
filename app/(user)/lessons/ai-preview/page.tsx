@@ -31,8 +31,9 @@ export default function AIPreviewPage() {
   
   const getPrimaryVideo = () => {
     if (!currentSign || !currentSign.media || currentSign.media.length === 0) return null;
-    const primary = currentSign.media.find(m => m.mediaType === "video" && m.isPrimary);
-    return primary || currentSign.media.find(m => m.mediaType === "video") || currentSign.media[0];
+    const isVideoMedia = (mediaType?: string) => mediaType?.toLowerCase() === "video";
+    const primary = currentSign.media.find(m => isVideoMedia(m.mediaType) && m.isPrimary);
+    return primary || currentSign.media.find(m => isVideoMedia(m.mediaType)) || currentSign.media[0];
   };
 
   const primaryVideo = getPrimaryVideo();

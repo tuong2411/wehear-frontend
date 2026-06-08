@@ -20,7 +20,10 @@ export default function DictionaryCard({ item, onEdit }: DictionaryCardProps) {
   const modalVideoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
   
-  const primaryVideo = item.media?.find(m => m.mediaType === "video" && m.isPrimary) || item.media?.[0];
+  const isVideoMedia = (mediaType?: string) => mediaType?.toLowerCase() === "video";
+  const primaryVideo = item.media?.find(m => isVideoMedia(m.mediaType) && m.isPrimary)
+    || item.media?.find(m => isVideoMedia(m.mediaType))
+    || item.media?.[0];
 
   const handleEditClick = () => {
     const user = authService.getCurrentUser();
