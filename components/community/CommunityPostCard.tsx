@@ -104,11 +104,19 @@ export default function CommunityPostCard({ post, onLikeUpdate }: PostCardProps)
           </p>
           
           {post.mediaUrl && (
-            <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 aspect-video relative">
+            <div className="rounded-2xl overflow-hidden bg-slate-100 border border-slate-100">
               {post.mediaType === 'IMAGE' ? (
-                <img src={getFullUrl(post.mediaUrl)} alt="Post media" className="w-full h-full object-cover" />
+                <img
+                  src={getFullUrl(post.mediaUrl)}
+                  alt="Post media"
+                  className="max-h-[520px] w-full object-contain"
+                />
               ) : (
-                <video src={getFullUrl(post.mediaUrl)} className="w-full h-full object-cover" />
+                <video
+                  src={getFullUrl(post.mediaUrl)}
+                  className="max-h-[520px] w-full object-contain"
+                  preload="metadata"
+                />
               )}
             </div>
           )}

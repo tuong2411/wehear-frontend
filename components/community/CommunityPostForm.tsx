@@ -123,11 +123,11 @@ export default function CommunityPostForm({ onPostCreated }: CommunityPostFormPr
             </div>
 
             {previewUrl && (
-              <div className="relative rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 max-h-60 flex items-center justify-center">
+              <div className="relative rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
                  {mediaType === 'IMAGE' ? (
-                   <img src={previewUrl} className="max-h-full object-contain" />
+                   <img src={previewUrl} alt="Preview media" className="max-h-[420px] w-full object-contain" />
                  ) : (
-                   <video src={previewUrl} className="max-h-full" controls />
+                   <video src={previewUrl} className="max-h-[420px] w-full object-contain" controls />
                  )}
                  <button 
                    type="button"
