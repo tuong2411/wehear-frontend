@@ -10,12 +10,11 @@ import {
   MessageSquare, 
   Zap, 
   ShieldCheck,
-  BrainCircuit,
   Camera
 } from "lucide-react";
 
 export default function TranslatePage() {
-  const [activeTab, setActiveTab] = useState<'quick' | 'upload' | 'live'>('live');
+  const [activeTab, setActiveTab] = useState<'quick' | 'upload' | 'live'>('quick');
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
@@ -55,7 +54,7 @@ export default function TranslatePage() {
                   : "text-slate-500 hover:text-slate-700"
                 }`}
               >
-                <Languages size={18} /> Văn bản → Ký hiệu
+                <Languages size={18} /> Từ ký hiệu → Câu
               </button>
               <button 
                 onClick={() => setActiveTab('upload')}
@@ -120,15 +119,15 @@ export default function TranslatePage() {
                   <div className="space-y-4">
                      <div className="flex items-start gap-4">
                         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black flex-shrink-0">1</div>
-                        <p className="text-slate-300 font-medium">Nhập câu văn hoặc cụm từ tiếng Việt bạn muốn truyền đạt vào khung dịch nhanh.</p>
+                        <p className="text-slate-300 font-medium">Nhập chuỗi từ hoặc cụm từ VSL theo đúng thứ tự nhận diện vào khung đầu vào.</p>
                      </div>
                      <div className="flex items-start gap-4">
                         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black flex-shrink-0">2</div>
-                        <p className="text-slate-300 font-medium">Hệ thống sẽ phân tích và tìm kiếm các video ký hiệu tương ứng trong từ điển của chúng tôi.</p>
+                        <p className="text-slate-300 font-medium">Mô hình ngôn ngữ sẽ phân tích trật tự từ và ngữ cảnh của chuỗi ký hiệu.</p>
                      </div>
                      <div className="flex items-start gap-4">
                         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black flex-shrink-0">3</div>
-                        <p className="text-slate-300 font-medium">Nếu từ không có trong từ điển, hệ thống sẽ tự động thực hiện đánh vần bằng ký hiệu chữ cái.</p>
+                        <p className="text-slate-300 font-medium">Kết quả là một câu tiếng Việt tự nhiên, có thể sao chép hoặc phát thành giọng nói.</p>
                      </div>
                   </div>
                </div>
