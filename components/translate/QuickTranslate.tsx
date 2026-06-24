@@ -17,6 +17,11 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 import {
+  DEFAULT_VSL_TRANSLATION_MODEL,
+  MAX_VSL_TRANSLATION_INPUT_LENGTH,
+  VSL_TRANSLATION_MODELS,
+  type VslTranslationModel,
+  normalizeVslInput,
   translateVslToVietnamese,
   VslTranslationError,
 } from "@/services/vslTranslationService";
@@ -24,6 +29,7 @@ import {
 interface TranslationHistoryItem {
   source: string;
   translation: string;
+  modelName: VslTranslationModel;
 }
 
 const EXAMPLES = [
@@ -38,14 +44,18 @@ export default function QuickTranslate() {
   const [history, setHistory] = useState<TranslationHistoryItem[]>([]);
   const [isTranslating, setIsTranslating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [selectedModel, setSelectedModel] = useState<VslTranslationModel>(DEFAULT_VSL_TRANSLATION_MODEL);
   const requestControllerRef = useRef<AbortController | null>(null);
+  const normalizedInput = normalizeVslInput(inputText);
+  const canTranslate = Boolean(normalizedInput) && !isTranslating;
 
   useEffect(() => {
     return () => requestControllerRef.current?.abort();
   }, []);
 
   const handleTranslate = async () => {
-    const source = inputText.trim().replace(/\s+/g, " ");
+    const source = normalizeVslInput(inputText);
     if (!source || isTranslating) return;
 
     requestControllerRef.current?.abort();
@@ -53,13 +63,15 @@ export default function QuickTranslate() {
     requestControllerRef.current = controller;
     setIsTranslating(true);
     setCopied(false);
+    setErrorMessage("");
+    setTranslation("");
 
     try {
-      const result = await translateVslToVietnamese(source, controller.signal);
+      const result = await translateVslToVietnamese(source, selectedModel, controller.signal);
       setTranslation(result);
       setHistory((current) => [
-        { source, translation: result },
-        ...current.filter((item) => item.source !== source),
+        { source, translation: result, modelName: selectedModel },
+        ...current.filter((item) => !(item.source === source && item.modelName === selectedModel)),
       ].slice(0, 5));
       toast.success("Đã tạo câu tiếng Việt.");
     } catch (error) {
@@ -68,6 +80,7 @@ export default function QuickTranslate() {
       const message = error instanceof VslTranslationError
         ? error.message
         : "Không thể kết nối đến dịch vụ dịch. Vui lòng thử lại.";
+      setErrorMessage(message);
       toast.error(message);
     } finally {
       if (requestControllerRef.current === controller) {
@@ -82,6 +95,7 @@ export default function QuickTranslate() {
     setInputText("");
     setTranslation("");
     setCopied(false);
+    setErrorMessage("");
   };
 
   const speak = () => {
@@ -98,6 +112,7 @@ export default function QuickTranslate() {
       await navigator.clipboard.writeText(translation);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
+      toast.success("Đã sao chép kết quả.");
     } catch {
       toast.error("Không thể sao chép kết quả.");
     }
@@ -121,29 +136,64 @@ export default function QuickTranslate() {
 
           <textarea
             value={inputText}
-            onChange={(event) => setInputText(event.target.value)}
+            onChange={(event) => {
+              setInputText(event.target.value);
+              if (errorMessage) setErrorMessage("");
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
                 void handleTranslate();
               }
             }}
-            maxLength={500}
+            maxLength={MAX_VSL_TRANSLATION_INPUT_LENGTH}
             placeholder="Ví dụ: Biết bơi ai?"
             className="w-full min-h-[220px] resize-none rounded-3xl bg-slate-50 border border-slate-100 px-6 py-5 text-xl font-bold text-slate-800 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60"
           />
 
-          <div className="mt-4 flex items-center justify-between gap-4">
-            <span className="text-xs font-bold text-slate-400">{inputText.length}/500 ký tự</span>
-            <button
-              type="button"
-              onClick={clearAll}
-              disabled={!inputText && !translation}
-              className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-rose-500 disabled:opacity-40 transition"
-            >
-              <Trash2 size={17} /> Xóa
-            </button>
+          <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+            <label className="block">
+              <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                Model dịch
+              </span>
+              <select
+                value={selectedModel}
+                disabled={isTranslating}
+                onChange={(event) => {
+                  setSelectedModel(event.target.value as VslTranslationModel);
+                  setTranslation("");
+                  setCopied(false);
+                  if (errorMessage) setErrorMessage("");
+                }}
+                className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60 disabled:opacity-60"
+              >
+                {VSL_TRANSLATION_MODELS.map((modelName) => (
+                  <option key={modelName} value={modelName}>
+                    {modelName}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="flex items-center justify-between gap-4 sm:justify-end">
+              <span className="text-xs font-bold text-slate-400">
+                {inputText.length}/{MAX_VSL_TRANSLATION_INPUT_LENGTH} ký tự
+              </span>
+              <button
+                type="button"
+                onClick={clearAll}
+                disabled={!inputText && !translation && !errorMessage}
+                className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-rose-500 disabled:opacity-40 transition"
+              >
+                <Trash2 size={17} /> Xóa
+              </button>
+            </div>
           </div>
+          {errorMessage && (
+            <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
+              {errorMessage}
+            </p>
+          )}
         </section>
 
         <div className="flex lg:flex-col items-center justify-center gap-4 py-1">
@@ -151,7 +201,7 @@ export default function QuickTranslate() {
           <button
             type="button"
             onClick={() => void handleTranslate()}
-            disabled={!inputText.trim() || isTranslating}
+            disabled={!canTranslate}
             className="shrink-0 flex items-center gap-3 rounded-full bg-blue-600 px-7 py-4 text-white font-black shadow-xl shadow-blue-200 transition hover:bg-blue-700 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
           >
             {isTranslating ? (
@@ -258,15 +308,17 @@ export default function QuickTranslate() {
           {history.map((item) => (
             <button
               type="button"
-              key={item.source}
-              title={item.translation}
+              key={`${item.modelName}:${item.source}`}
+              title={`${item.modelName}: ${item.translation}`}
               onClick={() => {
                 setInputText(item.source);
                 setTranslation(item.translation);
+                setSelectedModel(item.modelName);
               }}
               className="px-4 py-2.5 bg-emerald-50 border border-emerald-100 rounded-full text-sm font-bold text-emerald-700 hover:bg-emerald-100 transition"
             >
               {item.source}
+              <span className="ml-2 text-[10px] uppercase opacity-60">{item.modelName}</span>
             </button>
           ))}
         </div>
