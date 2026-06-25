@@ -12,7 +12,7 @@
     "lint": "eslint",
     "build:cf": "rm -rf .next/cache cache node_modules/.cache && next build && npx @cloudflare/next-on-pages",
     "build:worker": "npx @opennextjs/cloudflare build",
-    "deploy": "npm run build:worker && wrangler deploy"
+    "deploy": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name wehear-frontend"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",
