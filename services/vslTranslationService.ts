@@ -28,10 +28,6 @@ export function normalizeVslInput(text: string): string {
   return text.trim().replace(/\s+/g, " ");
 }
 
-function stripTrailingSentencePunctuation(text: string): string {
-  return text.replace(/\s*[.!?。！？]+\s*$/, "");
-}
-
 export async function translateVslToVietnamese(
   text: string,
   modelName: VslTranslationModel = DEFAULT_VSL_TRANSLATION_MODEL,
@@ -49,9 +45,6 @@ export async function translateVslToVietnamese(
     );
   }
 
-  // Model expects tokenized sentence-ending punctuation: "noi dung ."
-  const normalizedText = `${stripTrailingSentencePunctuation(compactText)} .`;
-
   let response: Response;
   try {
     response = await fetch(`${VSL_TRANSLATION_API_URL}/translate`, {
@@ -60,7 +53,7 @@ export async function translateVslToVietnamese(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: normalizedText,
+        text: compactText,
         length_penalty: 1.2,
         repetition_penalty: 1.1,
         model_name: modelName,

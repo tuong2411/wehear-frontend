@@ -37,6 +37,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     title: "Quản lý đóng góp",
     description: "Duyệt, từ chối và kiểm tra các đóng góp từ cộng đồng.",
   },
+  "/admin/vsl-corrections": {
+    title: "Lịch sử dịch VSL",
+    description: "Xem các bản dịch người dùng đã chỉnh sửa và lưu lại để chuẩn bị dữ liệu train.",
+  },
   "/admin/lessons": {
     title: "Quản lý bài học",
     description: "Tạo và chỉnh sửa nội dung học ngôn ngữ ký hiệu.",

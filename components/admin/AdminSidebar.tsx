@@ -6,9 +6,10 @@ import {
   LayoutDashboard, 
   Users, 
   BookOpen, 
-  Book, 
+  Book,
   HelpCircle, 
-  Newspaper
+  Newspaper,
+  BrainCircuit
 } from "lucide-react";
 
 const menuItems = [
@@ -17,6 +18,7 @@ const menuItems = [
   { icon: BookOpen, label: "Bài học", href: "/admin/lessons" },
   { icon: Book, label: "Từ điển", href: "/admin/dictionary" },
   { icon: HelpCircle, label: "Đóng góp", href: "/admin/dictionary/contributions" },
+  { icon: BrainCircuit, label: "Lịch sử dịch", href: "/admin/vsl-corrections" },
   { icon: Users, label: "Cộng đồng", href: "/admin/community" },
   { icon: HelpCircle, label: "Câu đố", href: "/admin/quizzes" },
   { icon: Newspaper, label: "Tin tức", href: "/admin/news" },
