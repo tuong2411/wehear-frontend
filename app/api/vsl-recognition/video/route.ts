@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 const VSL_RECOGNITION_API_URL = (
   process.env.VSL_RECOGNITION_API_URL ||
   process.env.NEXT_PUBLIC_VSL_RECOGNITION_API_URL ||
