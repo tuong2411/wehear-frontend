@@ -41,6 +41,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     title: "Lịch sử dịch VSL",
     description: "Xem các bản dịch người dùng đã chỉnh sửa và lưu lại để chuẩn bị dữ liệu train.",
   },
+  "/admin/vsl-upload-videos": {
+    title: "Video VSL đã lưu",
+    description: "Xem video người dùng upload, từ đã chọn và xuất dữ liệu train nhận diện.",
+  },
   "/admin/lessons": {
     title: "Quản lý bài học",
     description: "Tạo và chỉnh sửa nội dung học ngôn ngữ ký hiệu.",

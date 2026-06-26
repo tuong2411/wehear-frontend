@@ -5,6 +5,8 @@ import {
   ArrowRight,
   BrainCircuit,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clipboard,
   History,
   Languages,
@@ -32,6 +34,11 @@ import {
   saveVslTranslationCorrection,
   type VslTranslationCorrection,
 } from "@/services/vslCorrectionService";
+import {
+  clearSavedVslUploadWords,
+  getSavedVslUploadWords,
+  VSL_UPLOAD_WORDS_UPDATED_EVENT,
+} from "@/services/vslUploadWordStore";
 
 interface TranslationHistoryItem {
   source: string;
@@ -51,11 +58,13 @@ export default function QuickTranslate() {
   const [editableTranslation, setEditableTranslation] = useState("");
   const [lastTranslatedSource, setLastTranslatedSource] = useState("");
   const [history, setHistory] = useState<TranslationHistoryItem[]>([]);
+  const [savedUploadWords, setSavedUploadWords] = useState<string[]>([]);
   const [savedCorrections, setSavedCorrections] = useState<VslTranslationCorrection[]>([]);
   const [isTranslating, setIsTranslating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSavingCorrection, setIsSavingCorrection] = useState(false);
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+  const [isSavedPanelOpen, setIsSavedPanelOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -83,8 +92,16 @@ export default function QuickTranslate() {
     const hasToken = Boolean(localStorage.getItem("token"));
     setIsAuthenticated(hasToken);
     if (hasToken) void loadSavedCorrections();
+    setSavedUploadWords(getSavedVslUploadWords());
+
+    const handleSavedUploadWordsUpdated = () => {
+      setSavedUploadWords(getSavedVslUploadWords());
+    };
+
+    window.addEventListener(VSL_UPLOAD_WORDS_UPDATED_EVENT, handleSavedUploadWordsUpdated);
 
     return () => {
+      window.removeEventListener(VSL_UPLOAD_WORDS_UPDATED_EVENT, handleSavedUploadWordsUpdated);
       requestControllerRef.current?.abort();
       if (audioRef.current) {
         audioRef.current.pause();
@@ -92,6 +109,32 @@ export default function QuickTranslate() {
       }
     };
   }, [loadSavedCorrections]);
+
+  const resetCurrentTranslation = () => {
+    setTranslation("");
+    setEditableTranslation("");
+    setLastTranslatedSource("");
+    setCopied(false);
+    setErrorMessage("");
+  };
+
+  const appendSavedUploadWord = (word: string) => {
+    const nextInput = normalizeVslInput(`${inputText} ${word}`);
+    setInputText(nextInput);
+    resetCurrentTranslation();
+  };
+
+  const useAllSavedUploadWords = () => {
+    const nextInput = normalizeVslInput(savedUploadWords.join(" "));
+    setInputText(nextInput);
+    resetCurrentTranslation();
+  };
+
+  const clearSavedUploadWords = () => {
+    clearSavedVslUploadWords();
+    setSavedUploadWords([]);
+    toast.success("Đã xóa danh sách từ lưu từ video.");
+  };
 
   const handleTranslate = async () => {
     const source = normalizeVslInput(inputText);
@@ -234,7 +277,13 @@ export default function QuickTranslate() {
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-5 items-stretch xl:grid-cols-[minmax(0,1.25fr)_auto_minmax(0,1.25fr)_240px]">
+      <div
+        className={`grid grid-cols-1 gap-5 items-stretch ${
+          isSavedPanelOpen
+            ? "xl:grid-cols-[minmax(0,1.05fr)_auto_minmax(0,1.05fr)_300px]"
+            : "xl:grid-cols-[minmax(0,1.2fr)_auto_minmax(0,1.2fr)_76px]"
+        }`}
+      >
         <section className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-7 md:p-9">
           <div className="flex items-center justify-between gap-4 mb-6">
             <div>
@@ -436,17 +485,78 @@ export default function QuickTranslate() {
           items={savedCorrections}
           isAuthenticated={isAuthenticated}
           isLoading={isLoadingSaved}
+          isOpen={isSavedPanelOpen}
+          onToggle={() => setIsSavedPanelOpen((current) => !current)}
           onRefresh={() => void loadSavedCorrections()}
           onApply={applySavedCorrection}
         />
       </div>
 
-      <section className="bg-white rounded-[32px] border border-slate-100 p-6 md:p-7 flex flex-col lg:flex-row lg:items-center gap-5">
-        <div className="flex items-center gap-3 shrink-0">
-          <History size={19} className="text-blue-600" />
-          <span className="text-sm font-black text-slate-700">Dùng thử nhanh</span>
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="rounded-[28px] border border-slate-100 bg-white p-5 md:p-6 shadow-sm">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600">
+                Video upload
+              </p>
+              <h3 className="mt-1 text-base font-black text-slate-900">Từ đã lưu</h3>
+            </div>
+            {savedUploadWords.length > 0 && (
+              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-black text-indigo-700">
+                {savedUploadWords.length} từ
+              </span>
+            )}
+          </div>
+
+          {savedUploadWords.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex max-h-36 flex-wrap gap-2 overflow-y-auto pr-1">
+                {savedUploadWords.map((word) => (
+                  <button
+                    type="button"
+                    key={word}
+                    onClick={() => appendSavedUploadWord(word)}
+                    title="Thêm từ này vào chuỗi VSL"
+                    className="rounded-2xl border border-indigo-100 bg-indigo-50 px-3.5 py-2 text-sm font-black text-indigo-800 transition hover:border-indigo-200 hover:bg-indigo-100"
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={useAllSavedUploadWords}
+                  className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white transition hover:bg-blue-600"
+                >
+                  Dùng tất cả
+                </button>
+                <button
+                  type="button"
+                  onClick={clearSavedUploadWords}
+                  className="rounded-2xl border border-slate-100 bg-white px-4 py-2.5 text-sm font-bold text-slate-500 transition hover:border-rose-100 hover:bg-rose-50 hover:text-rose-600"
+                >
+                  Xóa danh sách
+                </button>
+              </div>
+            </div>
+          )}
+
+          {savedUploadWords.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">
+              <p className="text-sm font-bold text-slate-400">
+                Chưa có từ nào được lưu từ video upload.
+              </p>
+            </div>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2.5">
+
+        <div className="rounded-[28px] border border-slate-100 bg-white p-5 md:p-6 shadow-sm">
+          <div className="mb-4 flex items-center gap-3">
+            <History size={19} className="text-blue-600" />
+            <span className="text-sm font-black text-slate-700">Dùng thử nhanh</span>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
           {EXAMPLES.map((example) => (
             <button
               type="button"
@@ -475,6 +585,7 @@ export default function QuickTranslate() {
               <span className="ml-2 text-[10px] uppercase opacity-60">{item.modelName}</span>
             </button>
           ))}
+          </div>
         </div>
       </section>
 
@@ -486,15 +597,48 @@ function SavedCorrectionsPanel({
   items,
   isAuthenticated,
   isLoading,
+  isOpen,
+  onToggle,
   onRefresh,
   onApply,
 }: {
   items: VslTranslationCorrection[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
   onRefresh: () => void;
   onApply: (item: VslTranslationCorrection) => void;
 }) {
+  if (!isOpen) {
+    return (
+      <aside className="rounded-[28px] border border-slate-100 bg-white p-3 shadow-xl shadow-slate-200/40 text-slate-900 xl:min-h-[390px]">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label="Mở câu đã lưu"
+          title="Mở câu đã lưu"
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-left transition hover:border-blue-200 hover:bg-blue-50 xl:h-full xl:flex-col xl:justify-center xl:px-3 xl:py-4"
+        >
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white">
+            <ChevronLeft size={20} strokeWidth={2.8} />
+          </span>
+          <span className="min-w-0 flex-1 xl:flex-none xl:[writing-mode:vertical-rl] xl:rotate-180">
+            <span className="block text-sm font-black text-slate-900">Câu đã lưu</span>
+            <span className="mt-1 block text-xs font-bold text-slate-400 xl:hidden">
+              {isAuthenticated ? `${items.length} câu` : "Đăng nhập để xem"}
+            </span>
+          </span>
+          {isAuthenticated && items.length > 0 && (
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 xl:px-2">
+              {items.length}
+            </span>
+          )}
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <section className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40 p-4 text-slate-900 min-h-[390px]">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -504,6 +648,16 @@ function SavedCorrectionsPanel({
           </p>
           <h3 className="text-base font-black text-slate-900">Câu đã lưu</h3>
         </div>
+        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label="Thu gọn câu đã lưu"
+          title="Thu gọn"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700"
+        >
+          <ChevronRight size={17} />
+        </button>
         {isAuthenticated && (
           <button
             type="button"
@@ -515,6 +669,7 @@ function SavedCorrectionsPanel({
             {isLoading ? <Loader2 size={17} className="animate-spin" /> : <RotateCcw size={17} />}
           </button>
         )}
+        </div>
       </div>
 
       {!isAuthenticated ? (

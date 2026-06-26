@@ -9,7 +9,8 @@ import {
   Book,
   HelpCircle, 
   Newspaper,
-  BrainCircuit
+  BrainCircuit,
+  Video
 } from "lucide-react";
 
 const menuItems = [
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: Book, label: "Từ điển", href: "/admin/dictionary" },
   { icon: HelpCircle, label: "Đóng góp", href: "/admin/dictionary/contributions" },
   { icon: BrainCircuit, label: "Lịch sử dịch", href: "/admin/vsl-corrections" },
+  { icon: Video, label: "Video VSL", href: "/admin/vsl-upload-videos" },
   { icon: Users, label: "Cộng đồng", href: "/admin/community" },
   { icon: HelpCircle, label: "Câu đố", href: "/admin/quizzes" },
   { icon: Newspaper, label: "Tin tức", href: "/admin/news" },
