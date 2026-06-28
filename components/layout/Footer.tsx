@@ -3,13 +3,12 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-3">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-4">
         <div>
           <h3 className="text-xl font-bold text-slate-900">WeHear</h3>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Nền tảng hỗ trợ nhận diện và dịch ngôn ngữ ký hiệu tiếng Việt sang
-            văn bản, giúp tăng khả năng giao tiếp và tiếp cận thông tin cho
-            cộng đồng người khiếm thính.
+            Nền tảng cộng đồng hỗ trợ tra cứu, chia sẻ và giao tiếp bằng ngôn
+            ngữ ký hiệu tiếng Việt.
           </p>
         </div>
 
@@ -21,6 +20,11 @@ export default function Footer() {
             <li>
               <Link href="/" className="hover:text-blue-600">
                 Trang chủ
+              </Link>
+            </li>
+            <li>
+              <Link href="/community" className="hover:text-blue-600">
+                Cộng đồng
               </Link>
             </li>
             <li>
@@ -37,6 +41,26 @@ export default function Footer() {
               <Link href="/news" className="hover:text-blue-600">
                 Tin tức
               </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+            Nhóm phát triển
+          </h4>
+          <ul className="mt-4 space-y-3 text-sm text-slate-600">
+            <li>
+              <span className="font-semibold text-slate-800">
+                Mô hình nhận diện ký hiệu:
+              </span>{" "}
+              Phan Văn Quân, Trịnh Hữu Thọ
+            </li>
+            <li>
+              <span className="font-semibold text-slate-800">
+                Phần mềm:
+              </span>{" "}
+              Hoàng Mạnh Tường
             </li>
           </ul>
         </div>

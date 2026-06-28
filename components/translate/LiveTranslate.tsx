@@ -11,7 +11,6 @@ import {
   Mic,
   MicOff,
   Volume2,
-  Trash2,
   Play,
   Save,
   CheckCircle2,
@@ -46,7 +45,11 @@ const FACE_LANDMARKS = [
 
 const FRAME_INTERVAL_MS = 90;
 const PREDICTION_COOLDOWN_MS = 2400;
-const MIN_CONFIDENCE_PERCENT = 25;
+const MIN_CONFIDENCE_PERCENT = 20;
+const STABLE_CONFIDENCE_PERCENT = MIN_CONFIDENCE_PERCENT;
+const STABLE_PREDICTION_WINDOW = 5;
+const STABLE_PREDICTION_MIN_COUNT = 1;
+const MAX_WS_BUFFERED_AMOUNT = 512 * 1024;
 const EXPECTED_KEYPOINT_LENGTH = 351;
 const MEDIAPIPE_WASM_URL =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
@@ -107,6 +110,10 @@ export default function LiveTranslate() {
   const isAudioEnabledRef = useRef(true);
   const lastFrameAtRef = useRef(0);
   const lastPredictionRef = useRef({ label: "", at: 0 });
+  const recentPredictionsRef = useRef<
+    { label: string; confidence: number; at: number }[]
+  >([]);
+  const lowConfidenceStatusTimeoutRef = useRef<number | null>(null);
   const currentResultRef = useRef("");
   const lastDetectionErrorAtRef = useRef(0);
 
@@ -179,20 +186,38 @@ export default function LiveTranslate() {
         "@mediapipe/tasks-vision"
       );
       const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
-      const holistic = await HolisticLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath:
-            process.env.NEXT_PUBLIC_MEDIAPIPE_HOLISTIC_MODEL_URL ||
-            DEFAULT_HOLISTIC_MODEL_URL,
-          delegate: "GPU",
-        },
-        runningMode: "VIDEO",
+      const modelAssetPath =
+        process.env.NEXT_PUBLIC_MEDIAPIPE_HOLISTIC_MODEL_URL ||
+        DEFAULT_HOLISTIC_MODEL_URL;
+      const options = {
+        runningMode: "VIDEO" as const,
         minFaceDetectionConfidence: 0.5,
         minFacePresenceConfidence: 0.5,
         minPoseDetectionConfidence: 0.5,
         minPosePresenceConfidence: 0.5,
         minHandLandmarksConfidence: 0.5,
-      });
+      };
+
+      let holistic: HolisticLandmarker;
+      try {
+        holistic = await HolisticLandmarker.createFromOptions(vision, {
+          ...options,
+          baseOptions: {
+            modelAssetPath,
+            delegate: "GPU",
+          },
+        });
+      } catch (error) {
+        console.warn("MediaPipe GPU delegate failed, falling back to CPU.", error);
+        setEngineStatus("Đang tải MediaPipe bằng CPU");
+        holistic = await HolisticLandmarker.createFromOptions(vision, {
+          ...options,
+          baseOptions: {
+            modelAssetPath,
+            delegate: "CPU",
+          },
+        });
+      }
 
       holisticRef.current = holistic;
       return holistic;
@@ -203,6 +228,11 @@ export default function LiveTranslate() {
 
   const stopLiveRecognition = useCallback(() => {
     isActiveRef.current = false;
+
+    if (lowConfidenceStatusTimeoutRef.current !== null) {
+      window.clearTimeout(lowConfidenceStatusTimeoutRef.current);
+      lowConfidenceStatusTimeoutRef.current = null;
+    }
 
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -223,6 +253,8 @@ export default function LiveTranslate() {
     stopSpeech();
     setIsActive(false);
     setIsAnalyzing(false);
+    recentPredictionsRef.current = [];
+    lastPredictionRef.current = { label: "", at: 0 };
     currentResultRef.current = "";
     setCurrentResult("");
     setEditableResult("");
@@ -251,21 +283,67 @@ export default function LiveTranslate() {
         const now = Date.now();
         const previous = lastPredictionRef.current;
 
+        if (confidence < MIN_CONFIDENCE_PERCENT) {
+          recentPredictionsRef.current = [];
+          lastPredictionRef.current = { label: "", at: 0 };
+          currentResultRef.current = "";
+          setCurrentResult("");
+          setEditableResult("");
+          setIsCurrentResultSaved(false);
+          setIsAnalyzing(false);
+          if (lowConfidenceStatusTimeoutRef.current !== null) {
+            window.clearTimeout(lowConfidenceStatusTimeoutRef.current);
+            lowConfidenceStatusTimeoutRef.current = null;
+          }
+          setEngineStatus("Vui lòng thực hiện lại động tác");
+          lowConfidenceStatusTimeoutRef.current = window.setTimeout(() => {
+            if (!isActiveRef.current) return;
+            setEngineStatus("Đang nhận diện");
+            lowConfidenceStatusTimeoutRef.current = null;
+          }, 1400);
+          return;
+        }
+
+        setIsAnalyzing(false);
+
         if (currentResultRef.current !== label) {
           currentResultRef.current = label;
+          setCurrentResult(label);
           setEditableResult(label);
           setIsCurrentResultSaved(false);
         }
-        setCurrentResult(label);
-        setIsAnalyzing(false);
-        setEngineStatus(`Nhận diện ${Math.round(confidence)}%`);
 
-        if (
-          confidence < MIN_CONFIDENCE_PERCENT ||
-          (previous.label === label && now - previous.at < PREDICTION_COOLDOWN_MS)
-        ) {
+        recentPredictionsRef.current = [
+          ...recentPredictionsRef.current,
+          { label, confidence, at: now },
+        ].slice(-STABLE_PREDICTION_WINDOW);
+
+        const stablePredictions = recentPredictionsRef.current.filter(
+          (prediction) => prediction.confidence >= STABLE_CONFIDENCE_PERCENT,
+        );
+        const stableCount = stablePredictions.filter(
+          (prediction) => prediction.label === label,
+        ).length;
+
+        if (stableCount < STABLE_PREDICTION_MIN_COUNT) {
+          setEngineStatus(`Đang kiểm tra kết quả ${Math.round(confidence)}%`);
           return;
         }
+
+        if (previous.label === label && now - previous.at < PREDICTION_COOLDOWN_MS) {
+          return;
+        }
+
+        setEngineStatus(`Nhận diện ${Math.round(confidence)}%`);
+        if (lowConfidenceStatusTimeoutRef.current !== null) {
+          window.clearTimeout(lowConfidenceStatusTimeoutRef.current);
+          lowConfidenceStatusTimeoutRef.current = null;
+        }
+        lowConfidenceStatusTimeoutRef.current = window.setTimeout(() => {
+          if (!isActiveRef.current) return;
+          setEngineStatus("Đang nhận diện");
+          lowConfidenceStatusTimeoutRef.current = null;
+        }, 1400);
 
         lastPredictionRef.current = { label, at: now };
         setTranscript((prev) => [...prev, label].slice(-10));
@@ -324,6 +402,11 @@ export default function LiveTranslate() {
         return;
       }
 
+      if (socket.bufferedAmount > MAX_WS_BUFFERED_AMOUNT) {
+        setEngineStatus("Đang chờ server xử lý");
+        return;
+      }
+
       const frame = drawMirroredFrame(video);
       if (!frame) return;
 
@@ -358,6 +441,8 @@ export default function LiveTranslate() {
   const startLiveRecognition = useCallback(async () => {
     try {
       currentResultRef.current = "";
+      recentPredictionsRef.current = [];
+      lastPredictionRef.current = { label: "", at: 0 };
       setCurrentResult("");
       setEditableResult("");
       setIsCurrentResultSaved(false);
@@ -574,12 +659,9 @@ export default function LiveTranslate() {
               </div>
             </div>
 
-            <button
-              onClick={() => setTranscript([])}
-              className="flex items-center gap-2 text-slate-400 font-bold hover:text-rose-500 transition-colors"
-            >
-              <Trash2 size={20} /> Xóa lịch sử
-            </button>
+            <div className="text-sm font-bold text-slate-400">
+              Nhật ký được giữ trong phiên hiện tại
+            </div>
           </div>
           <div className="hidden">
             <div className="mb-4 flex items-center justify-between gap-4">

@@ -93,6 +93,10 @@ export default function LessonsPage() {
     }
   };
 
+  const getLessonSignCount = (lesson: Lesson) => {
+    return lesson.signCount ?? lesson.signs?.length ?? 0;
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] pb-32 font-sans">
       {/* --- ENHANCED HERO SECTION --- */}
@@ -305,7 +309,7 @@ export default function LessonsPage() {
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-1.5 text-slate-400">
                                 <Layers size={14} className="text-slate-400" />
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{lesson.signs?.length || 0} từ</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{getLessonSignCount(lesson)} từ</span>
                               </div>
                               <div className="flex items-center gap-1.5 text-slate-400">
                                 <Globe size={14} className="text-slate-400" />

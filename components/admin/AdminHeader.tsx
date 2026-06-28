@@ -65,10 +65,6 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     title: "Quản lý cộng đồng",
     description: "Kiểm duyệt bài viết, bình luận và báo cáo.",
   },
-  "/admin/quizzes": {
-    title: "Quản lý câu đố",
-    description: "Theo dõi nội dung luyện tập và câu hỏi kiểm tra.",
-  },
 };
 
 function getPageMeta(pathname: string) {

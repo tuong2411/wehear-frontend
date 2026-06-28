@@ -42,6 +42,7 @@ export interface Lesson {
   createdBy?: number;
   createdAt?: string;
   updatedAt?: string;
+  signCount?: number;
   signs?: SignDictionary[];
   quiz?: Quiz;
 }

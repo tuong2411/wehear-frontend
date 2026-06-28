@@ -7,6 +7,11 @@ import { ExternalNewsArticle } from "@/types/news";
 import { getExternalNews } from "@/services/newsService";
 import NewsCard from "@/components/news/NewsCard";
 
+const getArticleTime = (article: ExternalNewsArticle) => {
+  const value = article.publishedAt || article.fetchedAt;
+  return value ? new Date(value).getTime() : 0;
+};
+
 export default function NewsPreviewSection() {
   const [articles, setArticles] = useState<ExternalNewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,37 +20,37 @@ export default function NewsPreviewSection() {
     const fetchNews = async () => {
       try {
         const data = await getExternalNews();
-        // Lấy 3 bài báo có điểm liên quan cao nhất
-        const topArticles = [...data]
-          .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
+        const latestArticles = [...data]
+          .sort((a, b) => getArticleTime(b) - getArticleTime(a))
           .slice(0, 3);
-        setArticles(topArticles);
+        setArticles(latestArticles);
       } catch (error) {
         console.error("Failed to fetch news:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchNews();
   }, []);
 
   if (!loading && articles.length === 0) return null;
 
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="bg-slate-50 py-24">
       <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-600">
-               <Newspaper className="h-3 w-3" />
-               <span>TIN TỨC CẬP NHẬT</span>
+              <Newspaper className="h-3 w-3" />
+              <span>TIN TỨC MỚI NHẤT</span>
             </div>
-            <h2 className="mt-4 text-4xl font-bold text-slate-900 tracking-tight">
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-slate-900">
               Cập nhật mới nhất từ <br /> cộng đồng người khiếm thính
             </h2>
             <p className="mt-4 text-lg text-slate-500">
-               Những thông tin mới nhất về công nghệ hỗ trợ, giáo dục và 
-               các hoạt động cộng đồng nổi bật.
+              Những bài báo mới nhất về công nghệ hỗ trợ, giáo dục và các hoạt
+              động cộng đồng nổi bật.
             </p>
           </div>
 
@@ -60,9 +65,12 @@ export default function NewsPreviewSection() {
 
         {loading ? (
           <div className="grid gap-8 md:grid-cols-3">
-             {[1,2,3].map(i => (
-               <div key={i} className="h-96 animate-pulse rounded-[24px] bg-slate-200" />
-             ))}
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-96 animate-pulse rounded-3xl bg-slate-200"
+              />
+            ))}
           </div>
         ) : (
           <div className="grid gap-8 md:grid-cols-3">

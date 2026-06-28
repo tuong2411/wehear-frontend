@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export default function TranslatePage() {
-  const [activeTab, setActiveTab] = useState<"quick" | "upload" | "live">("quick");
+  const [activeTab, setActiveTab] = useState<"quick" | "upload" | "live">("live");
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">

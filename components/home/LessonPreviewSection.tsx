@@ -1,21 +1,26 @@
-const lessons = [
+import Link from "next/link";
+
+const tools = [
   {
     id: 1,
-    title: "Giao tiếp cơ bản",
-    level: "Cơ bản",
-    desc: "Làm quen với các ký hiệu chào hỏi và giao tiếp hàng ngày.",
+    title: "Bài học VSL",
+    level: "Bổ trợ",
+    desc: "Một số bài học theo chủ đề để người dùng mới làm quen với ký hiệu cơ bản.",
+    href: "/lessons",
   },
   {
     id: 2,
-    title: "Từ vựng hành chính",
-    level: "Trung cấp",
-    desc: "Các ký hiệu liên quan đến địa chỉ, tỉnh thành và thông tin công việc.",
+    title: "Từ điển ký hiệu",
+    level: "Tra cứu",
+    desc: "Tra nhanh ký hiệu, mô tả và video minh họa khi cần tham khảo trong thảo luận.",
+    href: "/dictionary",
   },
   {
     id: 3,
-    title: "Ôn tập bằng câu hỏi",
-    level: "Luyện tập",
-    desc: "Kiểm tra khả năng ghi nhớ ký hiệu thông qua bài trắc nghiệm ngắn.",
+    title: "Quiz luyện tập",
+    level: "Ôn tập",
+    desc: "Các câu hỏi ngắn giúp người dùng tự kiểm tra khả năng ghi nhớ ký hiệu.",
+    href: "/quiz",
   },
 ];
 
@@ -25,35 +30,39 @@ export default function LessonPreviewSection() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Học tập
+            Chức năng bổ trợ
           </p>
           <h2 className="mt-2 text-3xl font-bold text-slate-900">
-            Học ngôn ngữ ký hiệu theo lộ trình dễ tiếp cận
+            Bài học và từ điển vẫn có sẵn khi người dùng cần
           </h2>
           <p className="mt-3 text-slate-600">
-            Hệ thống cung cấp các bài học từ cơ bản đến nâng cao, kết hợp với quiz
-            để người dùng luyện tập thường xuyên.
+            Các chức năng học tập không phải trọng tâm trang chủ, nhưng vẫn là
+            công cụ hữu ích để tra cứu, luyện tập và hỗ trợ trao đổi trong cộng
+            đồng.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {lessons.map((lesson) => (
+          {tools.map((tool) => (
             <div
-              key={lesson.id}
-              className="rounded-[28px] bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              key={tool.id}
+              className="rounded-2xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
               <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                {lesson.level}
+                {tool.level}
               </span>
               <h3 className="mt-4 text-xl font-bold text-slate-900">
-                {lesson.title}
+                {tool.title}
               </h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                {lesson.desc}
+                {tool.desc}
               </p>
-              <button className="mt-6 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800">
-                Khám phá bài học
-              </button>
+              <Link
+                href={tool.href}
+                className="mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              >
+                Mở chức năng
+              </Link>
             </div>
           ))}
         </div>

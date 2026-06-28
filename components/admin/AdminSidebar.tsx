@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  BookOpen, 
+import {
+  LayoutDashboard,
+  Users,
+  BookOpen,
   Book,
-  HelpCircle, 
+  HelpCircle,
   Newspaper,
   BrainCircuit,
-  Video
+  Video,
 } from "lucide-react";
 
 const menuItems = [
@@ -22,7 +22,6 @@ const menuItems = [
   { icon: BrainCircuit, label: "Lịch sử dịch", href: "/admin/vsl-corrections" },
   { icon: Video, label: "Video VSL", href: "/admin/vsl-upload-videos" },
   { icon: Users, label: "Cộng đồng", href: "/admin/community" },
-  { icon: HelpCircle, label: "Câu đố", href: "/admin/quizzes" },
   { icon: Newspaper, label: "Tin tức", href: "/admin/news" },
 ];
 
@@ -31,22 +30,24 @@ export default function AdminSidebar() {
 
   return (
     <aside className="sticky top-20 flex h-[calc(100vh-5rem)] w-64 flex-col border-r bg-white">
-      <div className="p-6 border-b">
+      <div className="border-b p-6">
         <Link href="/" className="text-2xl font-bold text-blue-600">
           WeHear Admin
         </Link>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 space-y-1 p-4">
         {menuItems.map((item) => {
-          const isActive = item.href === "/admin"
-            ? pathname === item.href
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive =
+            item.href === "/admin"
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+              className={`flex items-center space-x-3 rounded-lg p-3 transition-colors ${
                 isActive
                   ? "bg-blue-50 text-blue-600"
                   : "text-gray-600 hover:bg-gray-50"
