@@ -832,8 +832,8 @@ export default function LiveTranslate() {
               <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-3xl border border-blue-100">
                 <BrainCircuit size={24} className="text-blue-500 flex-shrink-0" />
                 <p className="text-[11px] text-blue-700 font-bold leading-relaxed">
-                  Hệ thống trích xuất 351 keypoints trên trình duyệt rồi stream
-                  tới model nhận diện VSL theo thời gian thực.
+                  Hệ thống sẽ ghi lại cử động ký hiệu của bạn qua camera và gửi đến AI
+                  để nhận diện, sau đó hiển thị kết quả ở nhật ký hội thoại trên.
                 </p>
               </div>
             </div>

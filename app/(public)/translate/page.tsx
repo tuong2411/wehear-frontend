@@ -13,8 +13,42 @@ import {
   Camera,
 } from "lucide-react";
 
+const translationGuides = {
+  live: {
+    accentClass: "bg-rose-600",
+    title: "Hướng dẫn dịch trực tiếp",
+    steps: [
+      "Cho phép trình duyệt sử dụng camera, sau đó đặt tay và khuôn mặt trong khung hình.",
+      "Nhấn \"Bắt đầu dịch\" và thực hiện ký hiệu rõ ràng, từng động tác một.",
+      "Kết quả nhận diện sẽ xuất hiện trong nhật ký hội thoại, bạn có thể nghe lại hoặc lưu từ cần dùng.",
+    ],
+  },
+  quick: {
+    accentClass: "bg-blue-600",
+    title: "Hướng dẫn dịch từ ký hiệu sang câu",
+    steps: [
+      "Nhập chuỗi từ hoặc cụm từ VSL theo đúng thứ tự nhận diện vào khung đầu vào.",
+      "Chọn model dịch phù hợp rồi nhấn \"Dịch câu\" để hệ thống phân tích ngữ cảnh.",
+      "Kết quả là một câu tiếng Việt tự nhiên, có thể sao chép hoặc phát thành giọng nói.",
+    ],
+  },
+  upload: {
+    accentClass: "bg-indigo-600",
+    title: "Hướng dẫn dịch từ video tải lên",
+    steps: [
+      "Chọn hoặc kéo thả video có chứa động tác ký hiệu, ưu tiên video rõ tay và đủ sáng.",
+      "Chờ hệ thống phân tích video và trả về danh sách kết quả nhận diện phù hợp nhất.",
+      "Chọn kết quả đúng để lưu lại, hoặc gửi từ nhận diện sang phần dịch câu nếu cần tạo câu tiếng Việt hoàn chỉnh.",
+    ],
+  },
+} satisfies Record<
+  "quick" | "upload" | "live",
+  { accentClass: string; title: string; steps: string[] }
+>;
+
 export default function TranslatePage() {
   const [activeTab, setActiveTab] = useState<"quick" | "upload" | "live">("live");
+  const activeGuide = translationGuides[activeTab];
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
@@ -113,26 +147,25 @@ export default function TranslatePage() {
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-600/20 to-transparent" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
             <div className="max-w-xl space-y-6">
-              <h3 className="text-3xl font-black leading-tight">Hướng dẫn sử dụng hệ thống phiên dịch</h3>
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-white/50">
+                  Hướng dẫn sử dụng hệ thống phiên dịch
+                </p>
+                <h3 className="mt-3 text-3xl font-black leading-tight">
+                  {activeGuide.title}
+                </h3>
+              </div>
               <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black flex-shrink-0">1</div>
-                  <p className="text-slate-300 font-medium">
-                    Nhập chuỗi từ hoặc cụm từ VSL theo đúng thứ tự nhận diện vào khung đầu vào.
-                  </p>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black flex-shrink-0">2</div>
-                  <p className="text-slate-300 font-medium">
-                    Mô hình ngôn ngữ sẽ phân tích trật tự từ và ngữ cảnh của chuỗi ký hiệu.
-                  </p>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black flex-shrink-0">3</div>
-                  <p className="text-slate-300 font-medium">
-                    Kết quả là một câu tiếng Việt tự nhiên, có thể sao chép hoặc phát thành giọng nói.
-                  </p>
-                </div>
+                {activeGuide.steps.map((step, index) => (
+                  <div key={step} className="flex items-start gap-4">
+                    <div
+                      className={`w-8 h-8 rounded-full ${activeGuide.accentClass} flex items-center justify-center text-sm font-black flex-shrink-0`}
+                    >
+                      {index + 1}
+                    </div>
+                    <p className="text-slate-300 font-medium">{step}</p>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="flex-shrink-0 bg-white/10 backdrop-blur-md p-8 rounded-[40px] border border-white/10">

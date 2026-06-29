@@ -4,6 +4,13 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 
+const communityAvatars = [
+  { name: "Minh Anh", initials: "MA", className: "bg-blue-500" },
+  { name: "Gia Hân", initials: "GH", className: "bg-emerald-500" },
+  { name: "Tuấn Kiệt", initials: "TK", className: "bg-amber-500" },
+  { name: "Ngọc Linh", initials: "NL", className: "bg-rose-500" },
+];
+
 export default function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white pt-16 pb-24 lg:pt-32 lg:pb-40">
@@ -52,11 +59,14 @@ export default function HeroSection() {
 
             <div className="mt-10 flex items-center gap-6 text-sm text-slate-400">
               <div className="flex -space-x-3">
-                {[1, 2, 3, 4].map((i) => (
+                {communityAvatars.map((avatar) => (
                   <div
-                    key={i}
-                    className="h-10 w-10 rounded-full border-2 border-white bg-slate-200 shadow-sm"
-                  />
+                    key={avatar.name}
+                    title={avatar.name}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white shadow-sm ring-1 ring-slate-100 ${avatar.className}`}
+                  >
+                    {avatar.initials}
+                  </div>
                 ))}
               </div>
               <p>
