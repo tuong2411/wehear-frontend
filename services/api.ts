@@ -6,6 +6,11 @@ export const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+const protectedPaths = ["/admin", "/profile", "/history"];
+
+const isProtectedPath = (pathname: string) =>
+  protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
 // Add a request interceptor to include the token in the headers
 api.interceptors.request.use(
   (config) => {
@@ -32,8 +37,10 @@ api.interceptors.response.use(
       localStorage.removeItem("user");
       document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
 
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+      const { pathname, search } = window.location;
+      if (isProtectedPath(pathname) && !pathname.startsWith("/login")) {
+        const returnUrl = encodeURIComponent(`${pathname}${search}`);
+        window.location.href = `/login?returnUrl=${returnUrl}`;
       }
     }
     return Promise.reject(error);
