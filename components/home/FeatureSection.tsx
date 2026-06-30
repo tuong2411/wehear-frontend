@@ -21,8 +21,8 @@ const features = [
     border: "border-cyan-100",
   },
   {
-    title: "Công cụ AI hỗ trợ",
-    desc: "Dùng camera hoặc video để nhận diện ký hiệu, sau đó góp ý lại kết quả để cải thiện hệ thống.",
+    title: "Dùng thử ngay",
+    desc: "Mở camera hoặc tải video lên để kiểm tra ký hiệu nhanh, không cần cài thêm phần mềm.",
     icon: Sparkles,
     color: "text-violet-600",
     bg: "bg-violet-50/50",
@@ -47,8 +47,8 @@ export default function FeatureSection() {
             Vì một cộng đồng <span className="text-blue-600">không rào cản</span>
           </h2>
           <p className="mt-6 text-xl leading-relaxed text-slate-500">
-            WeHear đặt cộng đồng làm trung tâm, còn bài học, từ điển và AI là
-            các công cụ hỗ trợ việc kết nối, chia sẻ và đóng góp.
+            WeHear tập trung vào những việc thiết thực: truy cập miễn phí, thao tác nhanh,
+            dễ bắt đầu học và dễ trao đổi cùng cộng đồng.
           </p>
         </div>
 

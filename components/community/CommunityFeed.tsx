@@ -5,12 +5,29 @@ import { communityService } from "@/services/communityService";
 import { CommunityPost } from "@/types/community";
 import CommunityPostCard from "./CommunityPostCard";
 import CommunityPostForm from "./CommunityPostForm";
-import { Loader2, MessageSquareText, TrendingUp, Users, ShieldCheck, Star } from "lucide-react";
+import { Clock3, Gift, Loader2, MessageSquareText, ShieldCheck, UsersRound, Zap } from "lucide-react";
+
+const communityStrengths = [
+  {
+    title: "Tham gia miễn phí",
+    desc: "Đăng câu hỏi, chia sẻ kinh nghiệm và góp ý nội dung mà không mất phí.",
+    icon: Gift,
+  },
+  {
+    title: "Phản hồi nhanh",
+    desc: "Bài viết mới xuất hiện trực tiếp trong cộng đồng để mọi người cùng trao đổi.",
+    icon: Zap,
+  },
+  {
+    title: "Bắt đầu dễ dàng",
+    desc: "Có thể đăng bài, đính kèm hình ảnh hoặc video ngay khi cần hỗ trợ.",
+    icon: Clock3,
+  },
+];
 
 export default function CommunityFeed() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(0);
 
   useEffect(() => {
     fetchPosts();
@@ -83,59 +100,33 @@ export default function CommunityFeed() {
             <p className="text-sm text-slate-600 leading-relaxed mb-6">
               WeHear là không gian an toàn và tôn trọng. Mọi đóng góp đều có giá trị trong việc lan tỏa ngôn ngữ ký hiệu Việt Nam.
             </p>
-            <div className="flex justify-between items-center py-4 border-y border-slate-50">
-              <div className="text-center">
-                <div className="font-black text-xl text-slate-800">1.2K</div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Thành viên</div>
-              </div>
-              <div className="w-px h-8 bg-slate-100"></div>
-              <div className="text-center">
-                <div className="font-black text-xl text-slate-800">340</div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bài viết</div>
-              </div>
+            <div className="space-y-3 border-y border-slate-50 py-4">
+              {communityStrengths.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 ring-1 ring-slate-100">
+                      <Icon size={18} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black text-slate-800">{item.title}</div>
+                      <p className="mt-1 text-xs font-medium leading-5 text-slate-500">{item.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Trending Topics Widget */}
+          {/* Contribution Widget */}
           <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
             <h3 className="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
-              <TrendingUp className="text-red-500" size={20} /> Chủ đề nổi bật
+              <UsersRound className="text-emerald-600" size={20} /> Tham gia ngay
             </h3>
-            <div className="space-y-4">
-              {['Hỏi đáp từ vựng', 'Kỹ năng giao tiếp', 'Góc chia sẻ', 'Sự kiện Offline'].map((topic, idx) => (
-                <div key={idx} className="flex items-center justify-between group cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-300 font-black text-lg group-hover:text-blue-300 transition-colors">0{idx + 1}</span>
-                    <span className="font-bold text-slate-700 group-hover:text-blue-600 transition-colors">{topic}</span>
-                  </div>
-                  <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">{(50 - idx * 10)} bài</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Top Contributors Widget */}
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-            <h3 className="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
-              <Star className="text-yellow-400" size={20} /> Đóng góp tích cực
-            </h3>
-            <div className="space-y-4">
-              {[
-                { name: 'Nguyễn Trọng Tường', role: 'Chuyên gia', initials: 'T', color: 'bg-blue-100 text-blue-600' },
-                { name: 'Trần Thị Mai', role: 'Thành viên tích cực', initials: 'M', color: 'bg-pink-100 text-pink-600' },
-                { name: 'Lê Hoàng', role: 'Học viên', initials: 'H', color: 'bg-emerald-100 text-emerald-600' }
-              ].map((user, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black ${user.color}`}>
-                    {user.initials}
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-slate-800">{user.name}</div>
-                    <div className="text-xs font-medium text-slate-500">{user.role}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-sm leading-6 text-slate-600">
+              Bạn có thể đặt câu hỏi, chia sẻ trải nghiệm học VSL hoặc trao đổi về một ký hiệu
+              đang cần làm rõ. Mọi thao tác đều gọn và miễn phí.
+            </p>
           </div>
         </div>
       </div>

@@ -531,10 +531,10 @@ export default function LiveTranslate() {
   }, [stopLiveRecognition, stopSpeech]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-8 space-y-6">
-          <div className="relative bg-slate-900 rounded-[48px] overflow-hidden aspect-video shadow-2xl ring-8 ring-white group">
+          <div className="relative bg-slate-900 rounded-[28px] overflow-hidden aspect-video shadow-2xl ring-4 ring-white group sm:rounded-[40px] sm:ring-8 lg:rounded-[48px]">
             <video
               ref={videoRef}
               autoPlay
@@ -545,7 +545,7 @@ export default function LiveTranslate() {
 
             {!isActive && (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-6">
-                <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center animate-pulse">
+                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center animate-pulse sm:h-24 sm:w-24">
                   <Camera size={40} className="text-slate-600" />
                 </div>
                 <div className="text-center">
@@ -565,8 +565,8 @@ export default function LiveTranslate() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20"
                 >
-                  <div className="bg-black/40 backdrop-blur-xl px-10 py-5 rounded-[32px] border border-white/20 shadow-2xl">
-                    <p className="text-3xl md:text-4xl font-black text-white tracking-tight text-center">
+                  <div className="bg-black/40 backdrop-blur-xl px-5 py-3 rounded-[24px] border border-white/20 shadow-2xl sm:px-10 sm:py-5 sm:rounded-[32px]">
+                    <p className="text-xl font-black text-white tracking-tight text-center sm:text-3xl md:text-4xl">
                       {currentResult}
                     </p>
                   </div>
@@ -574,9 +574,9 @@ export default function LiveTranslate() {
               )}
             </AnimatePresence>
 
-            <div className="absolute top-8 left-8 flex items-center gap-3">
+            <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2 sm:left-8 sm:top-8 sm:gap-3">
               <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md border sm:px-4 sm:py-2 ${
                   isActive
                     ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
                     : "bg-white/10 border-white/10 text-white/50"
@@ -592,7 +592,7 @@ export default function LiveTranslate() {
                 </span>
               </div>
               {(isAnalyzing || isEngineLoading) && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 border border-blue-500/50 rounded-full backdrop-blur-md text-blue-400">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 border border-blue-500/50 rounded-full backdrop-blur-md text-blue-400 sm:px-4 sm:py-2">
                   <BrainCircuit size={14} className="animate-spin" />
                   <span className="text-[10px] font-black uppercase tracking-widest">
                     AI Processing
@@ -601,33 +601,33 @@ export default function LiveTranslate() {
               )}
             </div>
 
-            <div className="absolute top-8 right-8 max-w-[240px] px-4 py-2 bg-white/10 border border-white/10 rounded-full backdrop-blur-md text-white/70">
+            <div className="absolute right-4 top-16 max-w-[180px] px-3 py-1.5 bg-white/10 border border-white/10 rounded-full backdrop-blur-md text-white/70 sm:right-8 sm:top-8 sm:max-w-[240px] sm:px-4 sm:py-2">
               <p className="truncate text-[10px] font-black uppercase tracking-widest">
                 {engineStatus}
               </p>
             </div>
 
-            <div className="absolute bottom-8 right-8 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-100 transition-opacity sm:bottom-8 sm:right-8 sm:gap-3 lg:opacity-0 lg:group-hover:opacity-100">
               <button
                 onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                className={`p-4 rounded-3xl transition-all ${
+                className={`p-3 rounded-2xl transition-all sm:p-4 sm:rounded-3xl ${
                   isAudioEnabled ? "bg-white text-slate-900" : "bg-rose-500 text-white"
                 }`}
               >
                 {isSpeaking ? <Loader2 size={24} className="animate-spin" /> : isAudioEnabled ? <Volume2 size={24} /> : <MicOff size={24} />}
               </button>
-              <button className="p-4 bg-white/20 backdrop-blur-md text-white rounded-3xl hover:bg-white/30 transition-all">
+              <button className="p-3 bg-white/20 backdrop-blur-md text-white rounded-2xl hover:bg-white/30 transition-all sm:p-4 sm:rounded-3xl">
                 <Settings size={24} />
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-4 px-1 sm:px-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
               <button
                 onClick={toggleCamera}
                 disabled={isEngineLoading}
-                className={`flex items-center gap-3 px-10 py-5 rounded-[32px] font-black text-lg transition-all shadow-2xl disabled:cursor-not-allowed disabled:opacity-60 ${
+                className={`flex w-full items-center justify-center gap-3 px-6 py-4 rounded-[24px] font-black text-base transition-all shadow-2xl disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10 sm:py-5 sm:rounded-[32px] sm:text-lg ${
                   isActive
                     ? "bg-rose-500 text-white shadow-rose-200 hover:bg-rose-600"
                     : "bg-slate-900 text-white shadow-slate-200 hover:bg-blue-600"
@@ -659,7 +659,7 @@ export default function LiveTranslate() {
               </div>
             </div>
 
-            <div className="text-sm font-bold text-slate-400">
+            <div className="text-xs font-bold text-slate-400 sm:text-sm">
               Nhật ký được giữ trong phiên hiện tại
             </div>
           </div>
@@ -715,9 +715,9 @@ export default function LiveTranslate() {
         </div>
 
         <div className="lg:col-span-4 h-full">
-          <div className="bg-white rounded-[48px] border border-slate-100 shadow-xl shadow-slate-200/50 p-8 flex flex-col h-[600px]">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+          <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl shadow-slate-200/50 p-5 flex flex-col min-h-[460px] sm:rounded-[40px] sm:p-8 lg:h-[600px] lg:rounded-[48px]">
+            <div className="flex flex-col gap-3 mb-6 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-lg font-black text-slate-900 flex flex-wrap items-center gap-2 sm:text-xl sm:gap-3">
                 <MessageSquare size={24} className="text-rose-500" /> Nhật ký hội
                 thoại
               </h3>
@@ -738,7 +738,7 @@ export default function LiveTranslate() {
                       key={transcript.length - i}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="bg-slate-50 p-5 rounded-[28px] border border-slate-100 group relative"
+                    className="bg-slate-50 p-4 rounded-[22px] border border-slate-100 group relative sm:p-5 sm:rounded-[28px]"
                     >
                       {isLatest ? (
                         <div className="space-y-3">
@@ -758,7 +758,7 @@ export default function LiveTranslate() {
                               setEditableResult(event.target.value);
                               setIsCurrentResultSaved(false);
                             }}
-                            className="min-h-[92px] w-full resize-none rounded-2xl border border-slate-100 bg-white px-4 py-3 text-lg font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60"
+                            className="min-h-[92px] w-full resize-none rounded-2xl border border-slate-100 bg-white px-4 py-3 text-base font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60 sm:text-lg"
                           />
                           <div className="grid grid-cols-2 gap-2">
                             <button
@@ -785,7 +785,7 @@ export default function LiveTranslate() {
                         </div>
                       ) : (
                         <>
-                          <p className="font-bold text-slate-800 text-lg leading-tight pr-16">
+                          <p className="font-bold text-slate-800 text-base leading-tight pr-14 sm:text-lg sm:pr-16">
                             {text}
                           </p>
                           <div className="absolute top-5 right-5 flex items-center gap-2">
@@ -828,12 +828,12 @@ export default function LiveTranslate() {
               )}
             </div>
 
-            <div className="mt-8 pt-8 border-t border-slate-50">
-              <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-3xl border border-blue-100">
+            <div className="mt-6 pt-6 border-t border-slate-50 sm:mt-8 sm:pt-8">
+              <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100 sm:items-center sm:gap-4 sm:rounded-3xl">
                 <BrainCircuit size={24} className="text-blue-500 flex-shrink-0" />
                 <p className="text-[11px] text-blue-700 font-bold leading-relaxed">
-                  Hệ thống sẽ ghi lại cử động ký hiệu của bạn qua camera và gửi đến AI
-                  để nhận diện, sau đó hiển thị kết quả ở nhật ký hội thoại trên.
+                  Hệ thống sẽ gửi cử động ký hiệu qua camera đến AI để nhận diện.
+                  Kết quả chỉ nên dùng để tham khảo và kiểm tra lại khi cần.
                 </p>
               </div>
             </div>

@@ -276,21 +276,21 @@ export default function QuickTranslate() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div
-        className={`grid grid-cols-1 gap-5 items-stretch ${
+        className={`grid grid-cols-1 gap-4 items-stretch sm:gap-5 ${
           isSavedPanelOpen
             ? "xl:grid-cols-[minmax(0,1.05fr)_auto_minmax(0,1.05fr)_300px]"
             : "xl:grid-cols-[minmax(0,1.2fr)_auto_minmax(0,1.2fr)_76px]"
         }`}
       >
-        <section className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-7 md:p-9">
+        <section className="bg-white rounded-[28px] border border-slate-100 shadow-xl shadow-slate-200/40 p-5 sm:rounded-[40px] sm:p-7 md:p-9">
           <div className="flex items-center justify-between gap-4 mb-6">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">
                 Đầu vào VSL
               </p>
-              <h2 className="text-2xl font-black text-slate-900">Chuỗi từ ký hiệu</h2>
+              <h2 className="text-xl font-black text-slate-900 sm:text-2xl">Chuỗi từ ký hiệu</h2>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Languages size={24} />
@@ -316,7 +316,7 @@ export default function QuickTranslate() {
             }}
             maxLength={MAX_VSL_TRANSLATION_INPUT_LENGTH}
             placeholder="Ví dụ: Biết bơi ai?"
-            className="w-full min-h-[220px] resize-none rounded-3xl bg-slate-50 border border-slate-100 px-6 py-5 text-xl font-bold text-slate-800 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60"
+            className="w-full min-h-[180px] resize-none rounded-2xl bg-slate-50 border border-slate-100 px-4 py-4 text-base font-bold text-slate-800 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60 sm:min-h-[220px] sm:rounded-3xl sm:px-6 sm:py-5 sm:text-xl"
           />
 
           <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -372,7 +372,7 @@ export default function QuickTranslate() {
             type="button"
             onClick={() => void handleTranslate()}
             disabled={!canTranslate}
-            className="shrink-0 flex items-center gap-3 rounded-full bg-blue-600 px-7 py-4 text-white font-black shadow-xl shadow-blue-200 transition hover:bg-blue-700 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            className="shrink-0 flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-600 px-6 py-4 text-white font-black shadow-xl shadow-blue-200 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50 sm:w-auto sm:rounded-full sm:px-7 sm:hover:scale-105 disabled:hover:scale-100"
           >
             {isTranslating ? (
               <><Loader2 size={21} className="animate-spin" /> Đang dịch</>
@@ -383,7 +383,7 @@ export default function QuickTranslate() {
           <div className="hidden xl:block h-full w-px bg-slate-200" />
         </div>
 
-        <section className="relative overflow-hidden bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-7 md:p-9 text-slate-900 min-h-[390px]">
+        <section className="relative overflow-hidden bg-white rounded-[28px] border border-slate-100 shadow-xl shadow-slate-200/40 p-5 text-slate-900 min-h-[340px] sm:rounded-[40px] sm:p-7 md:p-9 sm:min-h-[390px]">
           <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-blue-100/70 blur-3xl" />
           <div className="relative h-full flex flex-col">
             <div className="flex items-center justify-between gap-4 mb-6">
@@ -391,7 +391,7 @@ export default function QuickTranslate() {
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">
                   Kết quả
                 </p>
-                <h2 className="text-2xl font-black">Câu tiếng Việt</h2>
+                <h2 className="text-xl font-black sm:text-2xl">Câu tiếng Việt</h2>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
                 <Sparkles size={24} />
@@ -425,7 +425,7 @@ export default function QuickTranslate() {
                     <textarea
                       value={editableTranslation}
                       onChange={(event) => setEditableTranslation(event.target.value)}
-                      className="w-full min-h-[170px] resize-none rounded-3xl bg-slate-50 border border-slate-100 px-6 py-5 text-2xl md:text-3xl font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60"
+                      className="w-full min-h-[150px] resize-none rounded-2xl bg-slate-50 border border-slate-100 px-4 py-4 text-xl font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60 sm:min-h-[170px] sm:rounded-3xl sm:px-6 sm:py-5 sm:text-2xl md:text-3xl"
                     />
                     {editableTranslation.trim() !== translation.trim() && (
                       <p className="text-xs font-bold text-emerald-600">
@@ -492,8 +492,8 @@ export default function QuickTranslate() {
         />
       </div>
 
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="rounded-[28px] border border-slate-100 bg-white p-5 md:p-6 shadow-sm">
+      <section className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="rounded-[22px] border border-slate-100 bg-white p-4 shadow-sm sm:rounded-[28px] sm:p-5 md:p-6">
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600">
@@ -551,7 +551,7 @@ export default function QuickTranslate() {
           )}
         </div>
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-5 md:p-6 shadow-sm">
+        <div className="rounded-[22px] border border-slate-100 bg-white p-4 shadow-sm sm:rounded-[28px] sm:p-5 md:p-6">
           <div className="mb-4 flex items-center gap-3">
             <History size={19} className="text-blue-600" />
             <span className="text-sm font-black text-slate-700">Dùng thử nhanh</span>

@@ -358,37 +358,37 @@ export default function LessonsPage() {
                  <div>
                     <h2 className="text-4xl font-black text-white mb-6">Bạn không học một mình</h2>
                     <p className="text-slate-400 text-lg mb-10 leading-relaxed">
-                       Tham gia cùng cộng đồng 10,000+ người đang học ngôn ngữ ký hiệu mỗi ngày. Chia sẻ tiến độ và cùng nhau chinh phục các thử thách mới.
+                       Học theo tốc độ của bạn, tra cứu khi cần và đặt câu hỏi trong cộng đồng WeHear khi muốn trao đổi thêm về ký hiệu.
                     </p>
                     <div className="flex flex-wrap gap-4">
-                       <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2">
+                       <Link href="/community" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2">
                           Tham gia ngay
                           <Users size={20} />
-                       </button>
-                       <button className="bg-white/5 hover:bg-white/10 text-white px-8 py-4 rounded-2xl font-black transition-all border border-white/10 backdrop-blur-md">
-                          Xem bảng xếp hạng
-                       </button>
+                       </Link>
+                       <Link href="/dictionary" className="bg-white/5 hover:bg-white/10 text-white px-8 py-4 rounded-2xl font-black transition-all border border-white/10 backdrop-blur-md">
+                          Tra từ điển
+                       </Link>
                     </div>
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-4 pt-8">
                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md">
-                          <h4 className="text-3xl font-black text-blue-400 mb-1">12K</h4>
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Học viên</p>
+                          <h4 className="text-2xl font-black text-blue-400 mb-1">Miễn phí</h4>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Bắt đầu học</p>
                        </div>
                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md">
-                          <h4 className="text-3xl font-black text-emerald-400 mb-1">4.9</h4>
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Đánh giá</p>
+                          <h4 className="text-2xl font-black text-emerald-400 mb-1">Tự học</h4>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Theo tốc độ riêng</p>
                        </div>
                     </div>
                     <div className="space-y-4">
                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md">
-                          <h4 className="text-3xl font-black text-purple-400 mb-1">4.3K</h4>
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Từ vựng</p>
+                          <h4 className="text-2xl font-black text-purple-400 mb-1">Tra cứu</h4>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Từ điển ký hiệu</p>
                        </div>
                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md">
-                          <h4 className="text-3xl font-black text-orange-400 mb-1">24/7</h4>
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Hỗ trợ AI</p>
+                          <h4 className="text-2xl font-black text-orange-400 mb-1">Hỏi đáp</h4>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Cùng cộng đồng</p>
                        </div>
                     </div>
                  </div>

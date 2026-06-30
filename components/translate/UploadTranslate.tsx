@@ -230,17 +230,17 @@ export default function UploadTranslate() {
   }, [preview, stopSpeech]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-10">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:gap-10">
         <div className="space-y-6">
-          <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+          <h3 className="text-lg font-black text-slate-900 flex flex-wrap items-center gap-2 sm:text-xl sm:gap-3">
             <Video size={24} className="text-blue-600" /> Tải video ký hiệu
           </h3>
 
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
-            className={`relative aspect-square rounded-[48px] border-4 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden ${
+            className={`relative aspect-[4/3] rounded-[28px] border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden sm:aspect-square sm:rounded-[40px] sm:border-4 lg:rounded-[48px] ${
               file
                 ? "border-blue-200 bg-blue-50/30"
                 : "border-slate-200 bg-white hover:border-blue-400 hover:bg-slate-50"
@@ -265,12 +265,12 @@ export default function UploadTranslate() {
                 </div>
               </div>
             ) : (
-              <div className="text-center p-10 flex flex-col items-center gap-6">
-                <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-3xl flex items-center justify-center shadow-sm">
+              <div className="text-center p-5 flex flex-col items-center gap-4 sm:p-10 sm:gap-6">
+                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shadow-sm sm:h-20 sm:w-20 sm:rounded-3xl">
                   <Upload size={32} />
                 </div>
                 <div>
-                  <p className="text-lg font-black text-slate-900">
+                  <p className="text-base font-black text-slate-900 sm:text-lg">
                     Kéo thả video vào đây
                   </p>
                   <p className="text-sm font-bold text-slate-400 mt-2">
@@ -279,7 +279,7 @@ export default function UploadTranslate() {
                 </div>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-8 py-3 bg-white border border-slate-200 text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-lg shadow-slate-200/50"
+                  className="px-6 py-3 bg-white border border-slate-200 text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-lg shadow-slate-200/50 sm:px-8"
                 >
                   Chọn từ máy tính
                 </button>
@@ -298,7 +298,7 @@ export default function UploadTranslate() {
           <button
             disabled={!file || isProcessing}
             onClick={handleTranslate}
-            className="w-full bg-blue-600 text-white py-5 rounded-[28px] font-black text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+            className="w-full bg-blue-600 text-white py-4 rounded-[22px] font-black text-base shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3 sm:py-5 sm:rounded-[28px] sm:text-lg"
           >
             {isUploading ? (
               <>
@@ -313,12 +313,12 @@ export default function UploadTranslate() {
         </div>
 
         <div className="space-y-6">
-          <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+          <h3 className="text-lg font-black text-slate-900 flex items-center gap-3 sm:text-xl">
             <MessageSquare size={24} className="text-indigo-600" /> Kết quả dịch
             thuật
           </h3>
 
-          <div className="bg-white rounded-[48px] border border-slate-100 shadow-xl shadow-slate-200/50 p-10 h-full min-h-[400px] flex flex-col">
+          <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl shadow-slate-200/50 p-5 h-full min-h-[360px] flex flex-col sm:rounded-[40px] sm:p-8 md:p-10 lg:rounded-[48px] lg:min-h-[400px]">
             <AnimatePresence mode="wait">
               {selectedPrediction ? (
                 <motion.div
@@ -332,8 +332,8 @@ export default function UploadTranslate() {
                       Phân tích hoàn tất
                     </span>
                   </div>
-                  <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100">
-                    <div className="flex items-start justify-between gap-4">
+                  <div className="bg-slate-50 p-4 rounded-[24px] border border-slate-100 sm:p-8 sm:rounded-[32px]">
+                    <div className="flex items-start justify-between gap-3 sm:gap-4">
                       <div>
                         <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-slate-400">
                           Từ đang chọn
@@ -344,7 +344,7 @@ export default function UploadTranslate() {
                             setEditableMeaning(event.target.value);
                             setIsSelectionSaved(false);
                           }}
-                          className="w-full min-h-[104px] resize-none rounded-2xl border border-slate-100 bg-white px-4 py-3 text-2xl font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60"
+                          className="w-full min-h-[96px] resize-none rounded-2xl border border-slate-100 bg-white px-4 py-3 text-xl font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60 sm:min-h-[104px] sm:text-2xl"
                         />
                       </div>
                       <button
@@ -360,7 +360,7 @@ export default function UploadTranslate() {
                   </div>
                   <div className="pt-6 border-t border-slate-50">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                      Độ tin cậy của từ đang chọn
+                      Độ tin cậy tham khảo
                     </p>
                     <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                       <div
@@ -372,7 +372,7 @@ export default function UploadTranslate() {
                     </div>
                     <div className="flex justify-between mt-2">
                       <span className="text-[10px] font-black text-emerald-600">
-                        {selectedPrediction.prob.toFixed(1)}% CHÍNH XÁC
+                        {selectedPrediction.prob.toFixed(1)}% TIN CẬY
                       </span>
                       <span className="text-[10px] font-black text-slate-400">
                         RAILWAY VSL API
@@ -445,13 +445,13 @@ export default function UploadTranslate() {
                   className="flex-1 flex flex-col items-center justify-center gap-8 text-center"
                 >
                   <div className="relative">
-                    <div className="w-32 h-32 border-8 border-blue-50 border-t-blue-500 rounded-full animate-spin" />
+                    <div className="w-24 h-24 border-8 border-blue-50 border-t-blue-500 rounded-full animate-spin sm:h-32 sm:w-32" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <BrainCircuit size={40} className="text-blue-500 animate-pulse" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-xl font-black text-slate-900">
+                    <p className="text-lg font-black text-slate-900 sm:text-xl">
                       AI đang xử lý video
                     </p>
                     <p className="text-sm font-bold text-slate-400 mt-2 max-w-[240px]">

@@ -6,41 +6,12 @@ import {
   ArrowRight,
   Heart,
   MessageCircle,
+  MessageSquareText,
   MessageSquarePlus,
   UsersRound,
 } from "lucide-react";
 import { communityService } from "@/services/communityService";
 import { CommunityPost } from "@/types/community";
-
-const fallbackPosts: CommunityPost[] = [
-  {
-    id: 1,
-    title: "Mọi người thường luyện ký hiệu giao tiếp hằng ngày như thế nào?",
-    content:
-      "Chia sẻ kinh nghiệm học VSL theo tình huống thực tế: chào hỏi, hỏi đường, đặt lịch khám và trao đổi trong gia đình.",
-    userFullName: "Cộng đồng WeHear",
-    likeCount: 24,
-    commentCount: 8,
-  },
-  {
-    id: 2,
-    title: "Góp ý thêm video mẫu cho các ký hiệu dễ nhầm",
-    content:
-      "Nếu bạn thấy một ký hiệu trong từ điển chưa rõ, hãy gửi video hoặc góp ý để nhóm quản trị kiểm tra và cập nhật dữ liệu.",
-    userFullName: "Nhóm đóng góp",
-    likeCount: 18,
-    commentCount: 5,
-  },
-  {
-    id: 3,
-    title: "Cần hỗ trợ dịch một đoạn ký hiệu ngắn",
-    content:
-      "Bạn có thể đăng câu hỏi, đính kèm video và nhờ cộng đồng cùng thảo luận để kết quả dịch chính xác hơn.",
-    userFullName: "Thành viên mới",
-    likeCount: 12,
-    commentCount: 4,
-  },
-];
 
 const getPostDate = (post: CommunityPost) => {
   if (!post.createdAt) return "Chủ đề cộng đồng";
@@ -72,8 +43,6 @@ export default function CommunityPreviewSection() {
 
     fetchPosts();
   }, []);
-
-  const displayPosts = posts.length > 0 ? posts : fallbackPosts;
 
   return (
     <section className="bg-white py-20">
@@ -120,9 +89,9 @@ export default function CommunityPreviewSection() {
               />
             ))}
           </div>
-        ) : (
+        ) : posts.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-3">
-            {displayPosts.map((post) => (
+            {posts.map((post) => (
               <Link
                 key={post.id ?? post.title}
                 href={post.id ? `/community/${post.id}` : "/community"}
@@ -150,6 +119,26 @@ export default function CommunityPreviewSection() {
                 </div>
               </Link>
             ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-14 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm ring-1 ring-slate-100">
+              <MessageSquareText className="h-8 w-8" />
+            </div>
+            <h3 className="text-xl font-extrabold text-slate-900">
+              Chưa có bài chia sẻ nào
+            </h3>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+              Cộng đồng sẽ hiển thị các bài viết mới khi có nội dung. Bạn có thể tham gia ngay,
+              đặt câu hỏi hoặc chia sẻ video ký hiệu để mọi người cùng trao đổi.
+            </p>
+            <Link
+              href="/community"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+            >
+              <MessageSquarePlus className="h-4 w-4" />
+              Đăng bài đầu tiên
+            </Link>
           </div>
         )}
       </div>

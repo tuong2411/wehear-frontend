@@ -9,7 +9,7 @@ import {
   Video,
   MessageSquare,
   Zap,
-  ShieldCheck,
+  FlaskConical,
   Camera,
 } from "lucide-react";
 
@@ -53,12 +53,12 @@ export default function TranslatePage() {
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
       <div className="relative bg-white border-b border-slate-100 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 sm:py-12 relative z-10">
           <div className="flex flex-col items-center text-center gap-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-rose-50 text-rose-600 rounded-full text-[11px] font-black uppercase tracking-widest border border-rose-100 animate-fade-in">
-              <Zap size={14} /> Real-time Translation Ready
+              <Zap size={14} /> Công cụ AI
             </div>
-            <h1 className="text-[32px] md:text-[40px] font-black text-slate-900 tracking-tight leading-[1.08]">
+            <h1 className="text-[30px] sm:text-[34px] md:text-[40px] font-black text-slate-900 tracking-tight leading-[1.08]">
               Giao tiếp <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500">
                 Theo thời gian thực
@@ -70,11 +70,11 @@ export default function TranslatePage() {
       </div>
 
       <div className="bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 pb-4">
-          <div className="flex bg-slate-100 p-1.5 rounded-[22px] w-full max-w-xl mx-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+          <div className="grid grid-cols-1 gap-1.5 bg-slate-100 p-1.5 rounded-[22px] w-full max-w-2xl mx-auto sm:grid-cols-3">
               <button
                 onClick={() => setActiveTab("live")}
-                className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-[18px] text-sm font-black transition-all ${
+                className={`flex min-h-12 items-center justify-center gap-2 py-3 px-3 rounded-[18px] text-xs font-black transition-all sm:text-sm ${
                   activeTab === "live"
                     ? "bg-white text-rose-600 shadow-xl shadow-slate-200"
                     : "text-slate-500 hover:text-slate-700"
@@ -84,7 +84,7 @@ export default function TranslatePage() {
               </button>
               <button
                 onClick={() => setActiveTab("quick")}
-                className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-[18px] text-sm font-black transition-all ${
+                className={`flex min-h-12 items-center justify-center gap-2 py-3 px-3 rounded-[18px] text-xs font-black transition-all sm:text-sm ${
                   activeTab === "quick"
                     ? "bg-white text-blue-600 shadow-xl shadow-slate-200"
                     : "text-slate-500 hover:text-slate-700"
@@ -94,7 +94,7 @@ export default function TranslatePage() {
               </button>
               <button
                 onClick={() => setActiveTab("upload")}
-                className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-[18px] text-sm font-black transition-all ${
+                className={`flex min-h-12 items-center justify-center gap-2 py-3 px-3 rounded-[18px] text-xs font-black transition-all sm:text-sm ${
                   activeTab === "upload"
                     ? "bg-white text-indigo-600 shadow-xl shadow-slate-200"
                     : "text-slate-500 hover:text-slate-700"
@@ -106,23 +106,23 @@ export default function TranslatePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="grid grid-cols-1 gap-8">
           {activeTab === "live" ? <LiveTranslate /> : activeTab === "quick" ? <QuickTranslate /> : <UploadTranslate />}
         </div>
 
-        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+        <div className="mt-16 grid grid-cols-1 gap-4 sm:mt-24 md:grid-cols-3 md:gap-6 lg:gap-8">
+          <div className="bg-white p-5 sm:p-8 rounded-[28px] sm:rounded-[40px] border border-slate-100 shadow-sm space-y-4">
             <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
-              <ShieldCheck size={28} />
+              <FlaskConical size={28} />
             </div>
-            <h4 className="text-xl font-black text-slate-900">Độ chính xác cao</h4>
+            <h4 className="text-xl font-black text-slate-900">Kết quả tham khảo</h4>
             <p className="text-slate-500 text-sm font-medium leading-relaxed">
-              Dữ liệu được kiểm duyệt bởi các chuyên gia ngôn ngữ ký hiệu Việt Nam (VSL).
+              Kết quả AI có thể thay đổi theo ánh sáng, góc quay và chất lượng video. Hãy kiểm tra lại trước khi dùng.
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-white p-5 sm:p-8 rounded-[28px] sm:rounded-[40px] border border-slate-100 shadow-sm space-y-4">
             <div className="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center">
               <Languages size={28} />
             </div>
@@ -132,7 +132,7 @@ export default function TranslatePage() {
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-white p-5 sm:p-8 rounded-[28px] sm:rounded-[40px] border border-slate-100 shadow-sm space-y-4">
             <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center">
               <MessageSquare size={28} />
             </div>
@@ -143,7 +143,7 @@ export default function TranslatePage() {
           </div>
         </div>
 
-        <div className="mt-16 bg-slate-900 rounded-[48px] p-8 md:p-16 text-white overflow-hidden relative">
+        <div className="mt-12 bg-slate-900 rounded-[28px] p-5 text-white overflow-hidden relative sm:rounded-[40px] sm:p-8 md:mt-16 md:p-12 lg:p-16">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-600/20 to-transparent" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
             <div className="max-w-xl space-y-6">
