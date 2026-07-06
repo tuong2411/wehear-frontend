@@ -23,7 +23,7 @@ export async function synthesizeVietnameseSpeech(text: string): Promise<Blob> {
 
     return response.data;
   } catch {
-    const message = "Không thể tạo giọng đọc. Vui lòng kiểm tra cấu hình FPT.AI hoặc thử lại.";
+    const message = "Không thể tạo giọng đọc. Vui lòng kiểm tra cấu hình Google Cloud TTS hoặc thử lại.";
     throw new TextToSpeechError(message);
   }
 }
