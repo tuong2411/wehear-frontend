@@ -51,6 +51,10 @@ const STABLE_PREDICTION_WINDOW = 5;
 const STABLE_PREDICTION_MIN_COUNT = 1;
 const MAX_WS_BUFFERED_AMOUNT = 512 * 1024;
 const EXPECTED_KEYPOINT_LENGTH = 351;
+const INITIAL_PREDICTION_FRAME_COUNT = 60;
+const NEXT_PREDICTION_FRAME_COUNT = 60;
+const SERVER_RESPONSE_TIMEOUT_MS = 12000;
+const ACCEPTED_PREDICTION_COOLDOWN_MS = 2200;
 const MEDIAPIPE_WASM_URL =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 const DEFAULT_HOLISTIC_MODEL_URL =
@@ -116,6 +120,15 @@ export default function LiveTranslate() {
   const lowConfidenceStatusTimeoutRef = useRef<number | null>(null);
   const currentResultRef = useRef("");
   const lastDetectionErrorAtRef = useRef(0);
+  const framesUntilNextPredictionRef = useRef(INITIAL_PREDICTION_FRAME_COUNT);
+  const isWaitingForPredictionRef = useRef(false);
+  const waitingForPredictionSinceRef = useRef(0);
+  const acceptedPredictionCooldownUntilRef = useRef(0);
+  const isWaitingForNeutralRef = useRef(false);
+  const resetAcceptedResultTimeoutRef = useRef<number | null>(null);
+  const isResettingRecognitionSocketRef = useRef(false);
+  const resetRecognitionSocketRef = useRef<(() => void) | null>(null);
+  const autoSpeechMutedUntilRef = useRef(0);
 
   const [isActive, setIsActive] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -143,6 +156,7 @@ export default function LiveTranslate() {
 
   const speak = useCallback(async (text: string, force = false) => {
     if ((!force && !isAudioEnabledRef.current) || !text) return;
+    if (!force && Date.now() < autoSpeechMutedUntilRef.current) return;
 
     try {
       stopSpeech();
@@ -168,6 +182,9 @@ export default function LiveTranslate() {
       await audio.play();
     } catch (error) {
       setIsSpeaking(false);
+      if (!force && error instanceof TextToSpeechError) {
+        autoSpeechMutedUntilRef.current = Date.now() + 30000;
+      }
       const message = error instanceof TextToSpeechError
         ? error.message
         : "Không thể tạo giọng đọc. Vui lòng thử lại.";
@@ -226,8 +243,42 @@ export default function LiveTranslate() {
     }
   }, []);
 
+  const clearAcceptedResultResetTimeout = useCallback(() => {
+    if (resetAcceptedResultTimeoutRef.current === null) return;
+
+    window.clearTimeout(resetAcceptedResultTimeoutRef.current);
+    resetAcceptedResultTimeoutRef.current = null;
+  }, []);
+
+  const resetAcceptedResultAfterCooldown = useCallback(() => {
+    clearAcceptedResultResetTimeout();
+
+    resetAcceptedResultTimeoutRef.current = window.setTimeout(() => {
+      if (!isActiveRef.current) {
+        resetAcceptedResultTimeoutRef.current = null;
+        return;
+      }
+
+      currentResultRef.current = "";
+      recentPredictionsRef.current = [];
+      setCurrentResult("");
+      setEditableResult("");
+      setIsCurrentResultSaved(false);
+      setEngineStatus("Hãy thực hiện động tác tiếp theo.");
+      resetAcceptedResultTimeoutRef.current = null;
+    }, ACCEPTED_PREDICTION_COOLDOWN_MS);
+  }, [clearAcceptedResultResetTimeout]);
+
+  const resetPredictionRequestState = useCallback((frameCount = INITIAL_PREDICTION_FRAME_COUNT) => {
+    framesUntilNextPredictionRef.current = frameCount;
+    isWaitingForPredictionRef.current = false;
+    waitingForPredictionSinceRef.current = 0;
+  }, []);
+
   const stopLiveRecognition = useCallback(() => {
     isActiveRef.current = false;
+
+    clearAcceptedResultResetTimeout();
 
     if (lowConfidenceStatusTimeoutRef.current !== null) {
       window.clearTimeout(lowConfidenceStatusTimeoutRef.current);
@@ -255,12 +306,16 @@ export default function LiveTranslate() {
     setIsAnalyzing(false);
     recentPredictionsRef.current = [];
     lastPredictionRef.current = { label: "", at: 0 };
+    resetPredictionRequestState();
+    acceptedPredictionCooldownUntilRef.current = 0;
+    isWaitingForNeutralRef.current = false;
+    isResettingRecognitionSocketRef.current = false;
     currentResultRef.current = "";
     setCurrentResult("");
     setEditableResult("");
     setIsCurrentResultSaved(false);
     setEngineStatus("Sẵn sàng");
-  }, [stopSpeech]);
+  }, [clearAcceptedResultResetTimeout, resetPredictionRequestState, stopSpeech]);
 
   const handlePredictionMessage = useCallback(
     (event: MessageEvent<string>) => {
@@ -269,6 +324,11 @@ export default function LiveTranslate() {
           predictions?: Prediction[];
           error?: string;
         };
+
+        framesUntilNextPredictionRef.current = NEXT_PREDICTION_FRAME_COUNT;
+        isWaitingForPredictionRef.current = false;
+        waitingForPredictionSinceRef.current = 0;
+        setIsAnalyzing(false);
 
         if (payload.error) {
           setEngineStatus(payload.error);
@@ -284,8 +344,14 @@ export default function LiveTranslate() {
         const previous = lastPredictionRef.current;
 
         if (confidence < MIN_CONFIDENCE_PERCENT) {
+          if (now < acceptedPredictionCooldownUntilRef.current) {
+            setIsAnalyzing(false);
+            setEngineStatus("Đang chờ động tác tiếp theo");
+            return;
+          }
+
+          isWaitingForNeutralRef.current = false;
           recentPredictionsRef.current = [];
-          lastPredictionRef.current = { label: "", at: 0 };
           currentResultRef.current = "";
           setCurrentResult("");
           setEditableResult("");
@@ -295,16 +361,16 @@ export default function LiveTranslate() {
             window.clearTimeout(lowConfidenceStatusTimeoutRef.current);
             lowConfidenceStatusTimeoutRef.current = null;
           }
-          setEngineStatus("Vui lòng thực hiện lại động tác");
-          lowConfidenceStatusTimeoutRef.current = window.setTimeout(() => {
-            if (!isActiveRef.current) return;
-            setEngineStatus("Đang nhận diện");
-            lowConfidenceStatusTimeoutRef.current = null;
-          }, 1400);
+          setEngineStatus("Hãy thực hiện động tác tiếp theo.");
           return;
         }
 
         setIsAnalyzing(false);
+
+        if (isWaitingForNeutralRef.current && label === previous.label) {
+          setEngineStatus("Hãy thực hiện động tác tiếp theo.");
+          return;
+        }
 
         if (currentResultRef.current !== label) {
           currentResultRef.current = label;
@@ -334,25 +400,31 @@ export default function LiveTranslate() {
           return;
         }
 
+        if (now < acceptedPredictionCooldownUntilRef.current) {
+          setEngineStatus("Đang chờ động tác tiếp theo");
+          return;
+        }
+
         setEngineStatus(`Nhận diện ${Math.round(confidence)}%`);
         if (lowConfidenceStatusTimeoutRef.current !== null) {
           window.clearTimeout(lowConfidenceStatusTimeoutRef.current);
           lowConfidenceStatusTimeoutRef.current = null;
         }
-        lowConfidenceStatusTimeoutRef.current = window.setTimeout(() => {
-          if (!isActiveRef.current) return;
-          setEngineStatus("Đang nhận diện");
-          lowConfidenceStatusTimeoutRef.current = null;
-        }, 1400);
-
         lastPredictionRef.current = { label, at: now };
-        setTranscript((prev) => [...prev, label].slice(-10));
+        acceptedPredictionCooldownUntilRef.current = now + ACCEPTED_PREDICTION_COOLDOWN_MS;
+        isWaitingForNeutralRef.current = true;
+        resetAcceptedResultAfterCooldown();
+        setTranscript((prev) => {
+          if (prev[prev.length - 1] === label) return prev;
+          return [...prev, label].slice(-10);
+        });
+        resetRecognitionSocketRef.current?.();
         void speak(label);
       } catch {
         setEngineStatus("Phản hồi AI không hợp lệ");
       }
     },
-    [speak],
+    [resetAcceptedResultAfterCooldown, speak],
   );
 
   const drawMirroredFrame = useCallback((video: HTMLVideoElement) => {
@@ -407,6 +479,17 @@ export default function LiveTranslate() {
         return;
       }
 
+      if (isWaitingForPredictionRef.current) {
+        const waitedMs = Date.now() - waitingForPredictionSinceRef.current;
+        if (waitedMs < SERVER_RESPONSE_TIMEOUT_MS) return;
+
+        isWaitingForPredictionRef.current = false;
+        waitingForPredictionSinceRef.current = 0;
+        framesUntilNextPredictionRef.current = NEXT_PREDICTION_FRAME_COUNT;
+        setIsAnalyzing(false);
+        setEngineStatus("Server phản hồi chậm, đang thử lại");
+      }
+
       const frame = drawMirroredFrame(video);
       if (!frame) return;
 
@@ -420,7 +503,16 @@ export default function LiveTranslate() {
         }
 
         socket.send(JSON.stringify({ keypoints }));
-        setIsAnalyzing(true);
+        framesUntilNextPredictionRef.current = Math.max(
+          0,
+          framesUntilNextPredictionRef.current - 1,
+        );
+
+        if (framesUntilNextPredictionRef.current === 0) {
+          isWaitingForPredictionRef.current = true;
+          waitingForPredictionSinceRef.current = Date.now();
+          setIsAnalyzing(true);
+        }
       } catch (error) {
         const now = Date.now();
         if (now - lastDetectionErrorAtRef.current > 3000) {
@@ -438,11 +530,73 @@ export default function LiveTranslate() {
     animationFrameRef.current = requestAnimationFrame(processFrame);
   }, [drawMirroredFrame]);
 
+  const openRecognitionSocket = useCallback(() => {
+    const socket = new WebSocket(getRecognitionWsUrl());
+    wsRef.current = socket;
+    setEngineStatus("Đang kết nối AI");
+
+    socket.onopen = () => {
+      resetPredictionRequestState();
+      isResettingRecognitionSocketRef.current = false;
+      setEngineStatus("Đang nhận diện");
+      setIsAnalyzing(false);
+      startFrameLoop();
+    };
+
+    socket.onmessage = handlePredictionMessage;
+
+    socket.onerror = () => {
+      if (wsRef.current !== socket) return;
+      if (isResettingRecognitionSocketRef.current) return;
+
+      setEngineStatus("Không kết nối được AI");
+      toast.error("Không kết nối được server nhận diện VSL.");
+    };
+
+    socket.onclose = () => {
+      if (wsRef.current !== socket) return;
+      if (isResettingRecognitionSocketRef.current) return;
+      if (!isActiveRef.current) return;
+
+      resetPredictionRequestState();
+      isWaitingForNeutralRef.current = false;
+      clearAcceptedResultResetTimeout();
+      setEngineStatus("Mất kết nối AI");
+      setIsAnalyzing(false);
+    };
+
+    return socket;
+  }, [
+    clearAcceptedResultResetTimeout,
+    handlePredictionMessage,
+    resetPredictionRequestState,
+    startFrameLoop,
+  ]);
+
+  const resetRecognitionSocket = useCallback(() => {
+    if (!isActiveRef.current) return;
+
+    const currentSocket = wsRef.current;
+    isResettingRecognitionSocketRef.current = true;
+    resetPredictionRequestState();
+    currentSocket?.close();
+    openRecognitionSocket();
+  }, [openRecognitionSocket, resetPredictionRequestState]);
+
+  useEffect(() => {
+    resetRecognitionSocketRef.current = resetRecognitionSocket;
+  }, [resetRecognitionSocket]);
+
   const startLiveRecognition = useCallback(async () => {
     try {
       currentResultRef.current = "";
       recentPredictionsRef.current = [];
       lastPredictionRef.current = { label: "", at: 0 };
+      resetPredictionRequestState();
+      acceptedPredictionCooldownUntilRef.current = 0;
+      isWaitingForNeutralRef.current = false;
+      isResettingRecognitionSocketRef.current = false;
+      clearAcceptedResultResetTimeout();
       setCurrentResult("");
       setEditableResult("");
       setIsCurrentResultSaved(false);
@@ -465,28 +619,7 @@ export default function LiveTranslate() {
 
       await initializeHolistic();
 
-      const socket = new WebSocket(getRecognitionWsUrl());
-      wsRef.current = socket;
-      setEngineStatus("Đang kết nối AI");
-
-      socket.onopen = () => {
-        setEngineStatus("Đang nhận diện");
-        setIsAnalyzing(true);
-        startFrameLoop();
-      };
-
-      socket.onmessage = handlePredictionMessage;
-
-      socket.onerror = () => {
-        setEngineStatus("Không kết nối được AI");
-        toast.error("Không kết nối được server nhận diện VSL.");
-      };
-
-      socket.onclose = () => {
-        if (!isActiveRef.current) return;
-        setEngineStatus("Mất kết nối AI");
-        setIsAnalyzing(false);
-      };
+      openRecognitionSocket();
 
       toast.success("Đã kết nối Camera và AI engine");
     } catch (error) {
@@ -497,9 +630,10 @@ export default function LiveTranslate() {
       );
     }
   }, [
-    handlePredictionMessage,
+    clearAcceptedResultResetTimeout,
     initializeHolistic,
-    startFrameLoop,
+    openRecognitionSocket,
+    resetPredictionRequestState,
     stopLiveRecognition,
   ]);
 
@@ -733,6 +867,8 @@ export default function LiveTranslate() {
                   .reverse()
                   .map((text, i) => {
                     const isLatest = i === 0;
+                    const isEditingLatest = isLatest && currentResult === text;
+                    const displayText = isEditingLatest ? editableResult : text;
                     return (
                     <motion.div
                       key={transcript.length - i}
@@ -753,18 +889,19 @@ export default function LiveTranslate() {
                             )}
                           </div>
                           <textarea
-                            value={editableResult}
+                            value={displayText}
                             onChange={(event) => {
                               setEditableResult(event.target.value);
                               setIsCurrentResultSaved(false);
                             }}
+                            readOnly={!isEditingLatest}
                             className="min-h-[92px] w-full resize-none rounded-2xl border border-slate-100 bg-white px-4 py-3 text-base font-black leading-tight text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/60 sm:text-lg"
                           />
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
-                              onClick={() => void speak(editableResult, true)}
-                              disabled={!editableResult.trim() || isSpeaking}
+                              onClick={() => void speak(displayText, true)}
+                              disabled={!displayText.trim() || isSpeaking}
                               className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-100 bg-white text-sm font-black text-slate-600 transition hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40"
                             >
                               {isSpeaking ? <Loader2 size={17} className="animate-spin" /> : <Volume2 size={17} />}
@@ -772,8 +909,17 @@ export default function LiveTranslate() {
                             </button>
                             <button
                               type="button"
-                              onClick={saveCurrentResult}
-                              disabled={!editableResult.trim() || isCurrentResultSaved}
+                              onClick={() => {
+                                if (isEditingLatest) {
+                                  saveCurrentResult();
+                                  return;
+                                }
+
+                                saveVslUploadWord(displayText);
+                                setIsCurrentResultSaved(true);
+                                toast.success("Đã lưu từ.");
+                              }}
+                              disabled={!displayText.trim() || isCurrentResultSaved}
                               className={`inline-flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-black text-white transition disabled:opacity-70 ${
                                 isCurrentResultSaved ? "bg-emerald-600" : "bg-slate-900 hover:bg-blue-600"
                               }`}
